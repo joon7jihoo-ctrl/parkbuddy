@@ -167,8 +167,13 @@ export async function adminSoftDeleteRoundAction(formData: FormData) {
   if (error) {
     throw new Error(error.message);
   }
+  revalidatePath("/admin");
   revalidatePath("/admin/rounds");
+  revalidatePath("/admin/rounds/deleted");
+  revalidatePath("/admin/logs");
   revalidatePath(`/admin/rounds/${roundId}`);
+
+  redirect("/admin/rounds?roundDeleted=1");
 }
 
 export async function adminRestoreRoundAction(formData: FormData) {
@@ -182,7 +187,12 @@ export async function adminRestoreRoundAction(formData: FormData) {
   if (error) {
     throw new Error(error.message);
   }
+  revalidatePath("/admin");
   revalidatePath("/admin/rounds");
+  revalidatePath("/admin/rounds/deleted");
+  revalidatePath("/admin/logs");
   revalidatePath(`/admin/rounds/${roundId}`);
+
+  redirect("/admin/rounds/deleted?roundRestored=1");
 }
 // PARKBUDDY_ROUND_SOFT_DELETE_ACTIONS_END
