@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireAdmin } from '@/lib/auth/require-member';
+import { DeletedRoundOperationBlocked } from '@/components/admin/deleted-round-operation-blocked';
 import { PrintButton } from '@/components/print-button';
 
 type PrintResultsPageProps = {
@@ -17,6 +18,7 @@ type RoundInfo = {
   game_type: string | null;
   scoring_type: string | null;
   club_id: string;
+  deleted_at: string | null;
 };
 
 type ScoreRow = {
@@ -166,7 +168,8 @@ export default async function RoundResultsPrintPage({ params }: PrintResultsPage
       play_date,
       game_type,
       scoring_type,
-      club_id
+      club_id,
+      deleted_at
     `,
     )
     .eq('id', routeParams.id)
@@ -179,6 +182,10 @@ export default async function RoundResultsPrintPage({ params }: PrintResultsPage
 
   if (!round) {
     notFound();
+  }
+
+  if (round.deleted_at) {
+    return <DeletedRoundOperationBlocked roundTitle={round.title} />;
   }
 
   const typedRound = round as RoundInfo;

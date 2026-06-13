@@ -11,7 +11,7 @@ export default async function ScoresPage() {
   const [{ data: stats }, { data: trend }, { data: rounds }] = await Promise.all([
     supabase.from('member_score_stats').select('rounds_count, avg_score, best_score').eq('member_id', member.id).maybeSingle(),
     supabase.from('member_round_totals').select('played_on, total_strokes').eq('member_id', member.id).order('played_on', { ascending: true }).limit(20),
-    supabase.from('rounds').select('id, title, played_on, course_name, holes').eq('club_id', member.club_id).order('played_on', { ascending: false }).limit(10),
+    supabase.from('rounds').select('id, title, played_on, course_name, holes').eq('club_id', member.club_id).is('deleted_at', null).order('played_on', { ascending: false }).limit(10),
   ]);
 
   return (

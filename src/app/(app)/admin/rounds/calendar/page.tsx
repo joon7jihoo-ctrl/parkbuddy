@@ -157,6 +157,7 @@ export default async function RoundCalendarPage({
     `,
     )
     .eq('club_id', member.club_id)
+    .is('deleted_at', null)
     .gte('play_date', startDate)
     .lt('play_date', endDate)
     .order('play_date', { ascending: true })

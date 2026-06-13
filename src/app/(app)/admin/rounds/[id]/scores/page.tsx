@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireAdmin } from '@/lib/auth/require-member';
+import { DeletedRoundOperationBlocked } from '@/components/admin/deleted-round-operation-blocked';
 import { saveRoundScoresAction } from './actions';
 
 type ScoresPageProps = {
@@ -61,13 +62,17 @@ export default async function RoundScoresPage({ params, searchParams }: ScoresPa
 
   const { data: round, error: roundError } = await supabase
     .from('rounds')
-    .select('id, title, course_name, play_date, status, club_id')
+    .select('id, title, course_name, play_date, status, club_id, deleted_at')
     .eq('id', routeParams.id)
     .eq('club_id', member.club_id)
     .maybeSingle();
 
   if (roundError) throw new Error(roundError.message);
   if (!round) notFound();
+
+  if (round.deleted_at) {
+    return <DeletedRoundOperationBlocked roundTitle={round.title} />;
+  }
 
   const { data: participantRows, error: participantsError } = await supabase
     .from('round_participants')

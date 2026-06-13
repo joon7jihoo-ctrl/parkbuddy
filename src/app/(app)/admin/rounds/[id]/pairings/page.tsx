@@ -1,6 +1,7 @@
 ﻿import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireAdmin } from '@/lib/auth/require-member';
+import { DeletedRoundOperationBlocked } from '@/components/admin/deleted-round-operation-blocked';
 import { RoundPairingForm } from '@/components/admin/round-pairing-form';
 import { saveRoundPairingsAction } from './actions';
 
@@ -17,6 +18,7 @@ type PairingsPageProps = {
 type Round = {
   id: string;
   club_id: string;
+  deleted_at: string | null;
   title: string | null;
   course_name: string | null;
   play_date: string | null;
@@ -92,7 +94,8 @@ export default async function PairingsPage({
       course_name,
       play_date,
       game_type,
-      scoring_type
+      scoring_type,
+      deleted_at
     `,
     )
     .eq('id', routeParams.id)
@@ -105,6 +108,10 @@ export default async function PairingsPage({
 
   if (!round) {
     notFound();
+  }
+
+  if (round.deleted_at) {
+    return <DeletedRoundOperationBlocked roundTitle={round.title} />;
   }
 
   const typedRound = round as Round;

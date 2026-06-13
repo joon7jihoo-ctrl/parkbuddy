@@ -9,9 +9,10 @@ export default async function RoundScorePage({ params }: { params: Promise<{ rou
 
   const { data: round } = await supabase
     .from('rounds')
-    .select('id, title, course_name, holes, club_id')
+    .select('id, title, course_name, holes, club_id, deleted_at')
     .eq('id', roundId)
     .eq('club_id', member.club_id)
+    .is('deleted_at', null)
     .maybeSingle();
 
   if (!round) notFound();

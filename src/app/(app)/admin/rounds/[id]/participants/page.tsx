@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireAdmin } from '@/lib/auth/require-member';
+import { DeletedRoundOperationBlocked } from '@/components/admin/deleted-round-operation-blocked';
 import { updateRoundParticipantsAction } from './actions';
 import { ParticipantSelectionEnhancer } from '@/components/admin/participant-selection-enhancer';
 
@@ -22,6 +23,7 @@ type Round = {
   play_date: string | null;
   start_time: string | null;
   status: string;
+  deleted_at: string | null;
 };
 
 type Member = {
@@ -90,7 +92,8 @@ export default async function RoundParticipantsPage({
       course_name,
       play_date,
       start_time,
-      status
+      status,
+      deleted_at
     `,
     )
     .eq('id', routeParams.id)
@@ -103,6 +106,10 @@ export default async function RoundParticipantsPage({
 
   if (!round) {
     notFound();
+  }
+
+  if (round.deleted_at) {
+    return <DeletedRoundOperationBlocked roundTitle={round.title} />;
   }
 
   const { data: members, error: membersError } = await supabase

@@ -2,6 +2,7 @@
 import { CopyCurrentUrlButton } from '@/components/copy-current-url-button';
 import { notFound } from 'next/navigation';
 import { requireAdmin } from '@/lib/auth/require-member';
+import { DeletedRoundOperationBlocked } from '@/components/admin/deleted-round-operation-blocked';
 
 type ResultsPageProps = {
   params: Promise<{
@@ -17,6 +18,7 @@ type RoundInfo = {
   game_type: string | null;
   scoring_type: string | null;
   club_id: string;
+  deleted_at: string | null;
 };
 
 type ScoreRow = {
@@ -187,7 +189,8 @@ export default async function RoundResultsPage({ params }: ResultsPageProps) {
       play_date,
       game_type,
       scoring_type,
-      club_id
+      club_id,
+      deleted_at
     `,
     )
     .eq('id', routeParams.id)
@@ -200,6 +203,10 @@ export default async function RoundResultsPage({ params }: ResultsPageProps) {
 
   if (!round) {
     notFound();
+  }
+
+  if (round.deleted_at) {
+    return <DeletedRoundOperationBlocked roundTitle={round.title} />;
   }
 
   const typedRound = round as RoundInfo;

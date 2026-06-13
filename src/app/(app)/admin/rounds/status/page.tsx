@@ -96,6 +96,7 @@ export default async function RoundStatusPage({ searchParams }: StatusPageProps)
     .from('rounds')
     .select('id, title, course_name, play_date, status, game_type, scoring_type')
     .eq('club_id', member.club_id)
+    .is('deleted_at', null)
     .order('play_date', { ascending: false })
     .order('created_at', { ascending: false });
 

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireAdmin } from '@/lib/auth/require-member';
+import { DeletedRoundOperationBlocked } from '@/components/admin/deleted-round-operation-blocked';
 import { updateRoundAction } from './actions';
 
 type EditRoundPageProps = {
@@ -16,6 +17,7 @@ type RoundInfo = {
   play_date: string | null;
   memo: string | null;
   club_id: string;
+  deleted_at: string | null;
 };
 
 export default async function EditRoundPage({ params }: EditRoundPageProps) {
@@ -24,7 +26,7 @@ export default async function EditRoundPage({ params }: EditRoundPageProps) {
 
   const { data: round, error } = await supabase
     .from('rounds')
-    .select('id, title, course_name, play_date, memo, club_id')
+    .select('id, title, course_name, play_date, memo, club_id, deleted_at')
     .eq('id', routeParams.id)
     .eq('club_id', member.club_id)
     .maybeSingle();
@@ -35,6 +37,10 @@ export default async function EditRoundPage({ params }: EditRoundPageProps) {
 
   if (!round) {
     notFound();
+  }
+
+  if (round.deleted_at) {
+    return <DeletedRoundOperationBlocked roundTitle={round.title} />;
   }
 
   const typedRound = round as RoundInfo;
