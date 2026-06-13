@@ -1,0 +1,170 @@
+'use client';
+
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
+type CandidateItem = {
+  checkbox: HTMLInputElement;
+  container: HTMLElement;
+  text: string;
+};
+
+function getCandidateContainer(checkbox: HTMLInputElement): HTMLElement {
+  return (
+    checkbox.closest('[data-member-search-item]') ??
+    checkbox.closest('label') ??
+    checkbox.closest('article') ??
+    checkbox.closest('li') ??
+    checkbox.parentElement ??
+    checkbox
+  ) as HTMLElement;
+}
+
+function getCandidateItems(scope: ParentNode): CandidateItem[] {
+  return Array.from(scope.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'))
+    .filter((checkbox) => !checkbox.disabled)
+    .map((checkbox) => {
+      const container = getCandidateContainer(checkbox);
+
+      return {
+        checkbox,
+        container,
+        text: container.textContent?.toLowerCase() ?? '',
+      };
+    });
+}
+
+export function MemberSearchFilter() {
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const [query, setQuery] = useState('');
+  const [selectedOnly, setSelectedOnly] = useState(false);
+  const [selectedCount, setSelectedCount] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
+  const [visibleCount, setVisibleCount] = useState(0);
+
+  const normalizedQuery = useMemo(() => query.trim().toLowerCase(), [query]);
+
+  const applyFilter = useCallback(() => {
+    const root = rootRef.current;
+    const scope = root?.closest('form') ?? document;
+    const candidates = getCandidateItems(scope);
+
+    let nextSelectedCount = 0;
+    let nextVisibleCount = 0;
+
+    candidates.forEach((candidate) => {
+      const isChecked = candidate.checkbox.checked;
+
+      if (isChecked) {
+        nextSelectedCount += 1;
+      }
+
+      const matchesQuery =
+        normalizedQuery.length === 0 || candidate.text.includes(normalizedQuery);
+      const matchesSelectedOnly = !selectedOnly || isChecked;
+      const isVisible = matchesQuery && matchesSelectedOnly;
+
+      candidate.container.hidden = !isVisible;
+      candidate.container.setAttribute('data-member-search-visible', String(isVisible));
+
+      if (isVisible) {
+        nextVisibleCount += 1;
+      }
+    });
+
+    setSelectedCount(nextSelectedCount);
+    setTotalCount(candidates.length);
+    setVisibleCount(nextVisibleCount);
+  }, [normalizedQuery, selectedOnly]);
+
+  useEffect(() => {
+    applyFilter();
+
+    const root = rootRef.current;
+    const scope = root?.closest('form') ?? document;
+
+    function handleChange(event: Event) {
+      const target = event.target;
+
+      if (target instanceof HTMLInputElement && target.type === 'checkbox') {
+        applyFilter();
+      }
+    }
+
+    scope.addEventListener('change', handleChange);
+
+    return () => {
+      scope.removeEventListener('change', handleChange);
+    };
+  }, [applyFilter]);
+
+  function handleToggleVisibleSelection() {
+    const root = rootRef.current;
+    const scope = root?.closest('form') ?? document;
+    const candidates = getCandidateItems(scope).filter((candidate) => {
+      const matchesQuery =
+        normalizedQuery.length === 0 || candidate.text.includes(normalizedQuery);
+      const matchesSelectedOnly = !selectedOnly || candidate.checkbox.checked;
+
+      return matchesQuery && matchesSelectedOnly;
+    });
+
+    const shouldSelectAll = candidates.some((candidate) => !candidate.checkbox.checked);
+
+    candidates.forEach((candidate) => {
+      candidate.checkbox.checked = shouldSelectAll;
+      candidate.checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+
+    applyFilter();
+  }
+
+  return (
+    <section
+      ref={rootRef}
+      className="mb-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"
+    >
+      <div className="flex flex-col gap-3">
+        <div>
+          <h2 className="text-base font-bold text-slate-900">회원 검색</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            이름을 입력하거나 선택된 회원만 모아 볼 수 있습니다.
+          </p>
+        </div>
+
+        <input
+          type="search"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="회원 이름으로 검색"
+          className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-base text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+        />
+
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-slate-600">
+            선택 {selectedCount}명 / 전체 {totalCount}명 / 표시 {visibleCount}명
+          </p>
+
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setSelectedOnly((current) => !current)}
+              className="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700"
+            >
+              {selectedOnly ? '전체 회원 보기' : '선택된 회원만 보기'}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleToggleVisibleSelection}
+              className="rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
+            >
+              {selectedCount > 0 && selectedCount === visibleCount
+                ? '전체 선택 해제'
+                : '전체 선택'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}

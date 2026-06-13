@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 
 type PlayMode = 'individual' | 'foursome' | 'fourball' | 'scramble' | 'team_match';
-type ScoringType = 'stroke' | 'new_peoria' | 'match' | 'stableford';
+type ScoringType = 'stroke' | 'new_peoria' | 'match_play' | 'stableford';
 
 type Participant = {
   id: string;
@@ -14,8 +14,8 @@ type Participant = {
 type PairingFormProps = {
   roundId: string;
   participants: Participant[];
-  defaultPlayMode?: PlayMode | string | null;
-  defaultScoringType?: ScoringType | string | null;
+  defaultPlayMode?: PlayMode;
+  defaultScoringType?: ScoringType;
   defaultAssignments?: Record<string, number>;
   action: (formData: FormData) => void | Promise<void>;
 };
@@ -59,57 +59,28 @@ const SCORING_OPTIONS_BY_PLAY_MODE: Record<
   individual: [
     { value: 'stroke', label: '스트로크 플레이' },
     { value: 'new_peoria', label: '신페리오' },
-    { value: 'match', label: '매치 플레이' },
+    { value: 'match_play', label: '매치 플레이' },
     { value: 'stableford', label: '스테이블포드' },
   ],
   foursome: [
     { value: 'stroke', label: '스트로크 플레이' },
-    { value: 'match', label: '매치 플레이' },
+    { value: 'match_play', label: '매치 플레이' },
   ],
   fourball: [
     { value: 'stroke', label: '스트로크 플레이' },
-    { value: 'match', label: '매치 플레이' },
+    { value: 'match_play', label: '매치 플레이' },
     { value: 'stableford', label: '스테이블포드' },
   ],
   scramble: [
     { value: 'stroke', label: '스트로크 플레이' },
-    { value: 'match', label: '매치 플레이' },
+    { value: 'match_play', label: '매치 플레이' },
   ],
   team_match: [
     { value: 'stroke', label: '스트로크 플레이' },
     { value: 'new_peoria', label: '신페리오' },
-    { value: 'match', label: '매치 플레이' },
+    { value: 'match_play', label: '매치 플레이' },
   ],
 };
-
-function normalizePlayMode(value?: string | null): PlayMode {
-  if (
-    value === 'individual' ||
-    value === 'foursome' ||
-    value === 'fourball' ||
-    value === 'scramble' ||
-    value === 'team_match'
-  ) {
-    return value;
-  }
-
-  if (value === 'team') {
-    return 'team_match';
-  }
-
-  return 'team_match';
-}
-
-function normalizeScoringType(
-  value: string | null | undefined,
-  playMode: PlayMode,
-): ScoringType {
-  const options = SCORING_OPTIONS_BY_PLAY_MODE[playMode];
-  const normalizedValue = value === 'match_play' ? 'match' : value;
-  const matched = options.find((option) => option.value === normalizedValue);
-
-  return matched?.value ?? options[0]?.value ?? 'stroke';
-}
 
 function getRecommendedGroupSizes(totalParticipants: number) {
   if (totalParticipants < 3 || totalParticipants === 5) {
@@ -138,37 +109,6 @@ function getRecommendedGroupSizes(totalParticipants: number) {
   return sizes;
 }
 
-function getRecommendedGameSettings(totalParticipants: number): {
-  playMode: PlayMode;
-  scoringType: ScoringType;
-  message: string;
-} {
-  if (totalParticipants >= 8 && totalParticipants % 2 === 0) {
-    return {
-      playMode: 'team_match',
-      scoringType: 'match',
-      message:
-        '청백전 + 매치 플레이를 추천합니다. 팀 대항 승점 방식이라 가장 긴장감 있게 즐길 수 있습니다.',
-    };
-  }
-
-  if (totalParticipants >= 6) {
-    return {
-      playMode: 'scramble',
-      scoringType: 'stroke',
-      message:
-        '스크램블 스트로크를 추천합니다. 실력 차이가 있어도 친선 라운드 분위기를 만들기 좋습니다.',
-    };
-  }
-
-  return {
-    playMode: 'individual',
-    scoringType: 'new_peoria',
-    message:
-      '개인전 신페리오를 추천합니다. 소규모 라운드에서 핸디캡 보정으로 재미를 살릴 수 있습니다.',
-  };
-}
-
 function getRecommendation(totalParticipants: number) {
   if (totalParticipants < 3) {
     return '참가자가 최소 3명 이상이어야 조 편성이 가능합니다.';
@@ -178,7 +118,15 @@ function getRecommendation(totalParticipants: number) {
     return '5명은 3명 이상 4명 이하 조로 나누기 어려워 참가자 추가 또는 제외가 필요합니다.';
   }
 
-  return getRecommendedGameSettings(totalParticipants).message;
+  if (totalParticipants >= 8 && totalParticipants % 2 === 0) {
+    return '청백전 + 매치 플레이를 추천합니다. 팀 대항 승점 방식이라 가장 긴장감 있게 즐길 수 있습니다.';
+  }
+
+  if (totalParticipants >= 6) {
+    return '스크램블 스트로크를 추천합니다. 실력 차이가 있어도 친선 라운드 분위기를 만들기 좋습니다.';
+  }
+
+  return '개인전 신페리오를 추천합니다. 소규모 라운드에서 핸디캡 보정으로 재미를 살릴 수 있습니다.';
 }
 
 function buildInitialAssignments(
@@ -212,8 +160,8 @@ function buildInitialAssignments(
 export function RoundPairingForm({
   roundId,
   participants,
-  defaultPlayMode = null,
-  defaultScoringType = null,
+  defaultPlayMode = 'team_match',
+  defaultScoringType = 'match_play',
   defaultAssignments,
   action,
 }: PairingFormProps) {
@@ -222,31 +170,18 @@ export function RoundPairingForm({
     [participants.length],
   );
 
-  const hasSavedAssignments =
-    Boolean(defaultAssignments) && Object.keys(defaultAssignments ?? {}).length > 0;
-  const recommendedSettings = getRecommendedGameSettings(participants.length);
-
-  const initialPlayMode = hasSavedAssignments
-    ? normalizePlayMode(defaultPlayMode)
-    : recommendedSettings.playMode;
-  const initialScoringType = hasSavedAssignments
-    ? normalizeScoringType(defaultScoringType, initialPlayMode)
-    : recommendedSettings.scoringType;
-
-  const [playMode, setPlayMode] = useState<PlayMode>(initialPlayMode);
-  const [scoringType, setScoringType] =
-    useState<ScoringType>(initialScoringType);
+  const [playMode, setPlayMode] = useState<PlayMode>(defaultPlayMode);
+  const [scoringType, setScoringType] = useState<ScoringType>(
+    defaultScoringType,
+  );
   const [assignments, setAssignments] = useState<Record<string, number>>(() =>
     buildInitialAssignments(participants, groupSizes, defaultAssignments),
   );
 
-  const scoringOptions =
-    SCORING_OPTIONS_BY_PLAY_MODE[playMode] ?? SCORING_OPTIONS_BY_PLAY_MODE.team_match;
+  const scoringOptions = SCORING_OPTIONS_BY_PLAY_MODE[playMode];
 
-  function handlePlayModeChange(nextValue: string) {
-    const nextPlayMode = normalizePlayMode(nextValue);
-    const nextOptions =
-      SCORING_OPTIONS_BY_PLAY_MODE[nextPlayMode] ?? SCORING_OPTIONS_BY_PLAY_MODE.team_match;
+  function handlePlayModeChange(nextPlayMode: PlayMode) {
+    const nextOptions = SCORING_OPTIONS_BY_PLAY_MODE[nextPlayMode];
     const firstOption = nextOptions[0];
 
     setPlayMode(nextPlayMode);
@@ -294,7 +229,9 @@ export function RoundPairingForm({
             </span>
             <select
               value={playMode}
-              onChange={(event) => handlePlayModeChange(event.target.value)}
+              onChange={(event) =>
+                handlePlayModeChange(event.target.value as PlayMode)
+              }
               className="mt-2 h-12 w-full rounded-2xl border border-slate-200 px-4 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
             >
               {PLAY_MODE_OPTIONS.map((option) => (
@@ -312,7 +249,7 @@ export function RoundPairingForm({
             <select
               value={scoringType}
               onChange={(event) =>
-                setScoringType(normalizeScoringType(event.target.value, playMode))
+                setScoringType(event.target.value as ScoringType)
               }
               className="mt-2 h-12 w-full rounded-2xl border border-slate-200 px-4 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
             >

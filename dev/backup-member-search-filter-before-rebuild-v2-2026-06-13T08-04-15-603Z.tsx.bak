@@ -1,0 +1,234 @@
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+
+type MemberCounts = {
+  total: number;
+  selected: number;
+};
+
+type MemberEntry = {
+  checkbox: HTMLInputElement;
+  row: HTMLElement;
+  text: string;
+};
+
+function getMemberRow(checkbox: HTMLInputElement): HTMLElement | null {
+  return (
+    checkbox.closest<HTMLElement>('[data-member-search-row]') ??
+    checkbox.closest<HTMLElement>('label') ??
+    checkbox.closest<HTMLElement>('article') ??
+    checkbox.closest<HTMLElement>('li') ??
+    checkbox.parentElement
+  );
+}
+
+function getMemberEntries(scope: ParentNode): MemberEntry[] {
+  const selectors = [
+    'input[type="checkbox"][name="memberIds"]',
+    'input[type="checkbox"][name="memberIds[]"]',
+    'input[type="checkbox"][name="member_ids"]',
+    'input[type="checkbox"][name="member_ids[]"]',
+    'input[type="checkbox"][name="participants"]',
+    'input[type="checkbox"][name="participants[]"]',
+  ];
+
+  const checkboxMap = new Map<HTMLInputElement, HTMLInputElement>();
+
+  selectors.forEach((selector) => {
+    scope
+      .querySelectorAll<HTMLInputElement>(selector)
+      .forEach((checkbox) => checkboxMap.set(checkbox, checkbox));
+  });
+
+  if (checkboxMap.size === 0) {
+    scope
+      .querySelectorAll<HTMLInputElement>('input[type="checkbox"]')
+      .forEach((checkbox) => {
+        if (!checkbox.disabled) {
+          checkboxMap.set(checkbox, checkbox);
+        }
+      });
+  }
+
+  return Array.from(checkboxMap.values())
+    .map((checkbox) => {
+      const row = getMemberRow(checkbox);
+
+      if (!row) {
+        return null;
+      }
+
+      return {
+        checkbox,
+        row,
+        text: row.textContent?.toLocaleLowerCase('ko-KR') ?? '',
+      };
+    })
+    .filter((entry): entry is MemberEntry => entry !== null);
+}
+
+function updateSelectedCountText(scope: ParentNode, selectedCount: number) {
+  const elements = Array.from(
+    scope.querySelectorAll<HTMLElement>('p, span, div'),
+  );
+
+  elements.forEach((element) => {
+    const text = element.textContent ?? '';
+
+    if (!text.includes('현재') || !text.includes('명 선택')) {
+      return;
+    }
+
+    element.textContent = text.replace(
+      /현재\s*\d+\s*명\s*선택됨/g,
+      `현재 ${selectedCount}명 선택됨`,
+    );
+  });
+}
+
+export function MemberSearchFilter() {
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const queryRef = useRef('');
+  const selectedOnlyRef = useRef(false);
+  const refreshRef = useRef<() => void>(() => undefined);
+
+  const [query, setQuery] = useState('');
+  const [selectedOnly, setSelectedOnly] = useState(false);
+  const [counts, setCounts] = useState<MemberCounts>({
+    total: 0,
+    selected: 0,
+  });
+
+  function getScope() {
+    return rootRef.current?.closest('main') ?? document;
+  }
+
+  function refreshSoon() {
+    window.setTimeout(() => {
+      refreshRef.current();
+    }, 0);
+  }
+
+  function toggleVisibleCheckboxes() {
+    const scope = getScope();
+    const visibleEntries = getMemberEntries(scope).filter(
+      (entry) => !entry.row.hidden,
+    );
+
+    if (visibleEntries.length === 0) {
+      refreshSoon();
+      return;
+    }
+
+    const shouldSelect = !visibleEntries.every((entry) => entry.checkbox.checked);
+
+    visibleEntries.forEach((entry) => {
+      entry.checkbox.checked = shouldSelect;
+      entry.checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+
+    refreshSoon();
+  }
+
+  function toggleSelectedOnly() {
+    const nextSelectedOnly = !selectedOnlyRef.current;
+
+    selectedOnlyRef.current = nextSelectedOnly;
+    setSelectedOnly(nextSelectedOnly);
+    refreshSoon();
+  }
+
+  useEffect(() => {
+    const refresh = () => {
+      const scope = getScope();
+      const entries = getMemberEntries(scope);
+      const normalizedQuery = queryRef.current
+        .trim()
+        .toLocaleLowerCase('ko-KR');
+      const shouldShowSelectedOnly = selectedOnlyRef.current;
+
+      let selectedCount = 0;
+
+      entries.forEach((entry) => {
+        if (entry.checkbox.checked) {
+          selectedCount += 1;
+        }
+
+        const matchesQuery =
+          normalizedQuery.length === 0 || entry.text.includes(normalizedQuery);
+        const matchesSelectedOnly =
+          !shouldShowSelectedOnly || entry.checkbox.checked;
+
+        entry.row.hidden = !(matchesQuery && matchesSelectedOnly);
+      });
+
+      setCounts({
+        total: entries.length,
+        selected: selectedCount,
+      });
+
+      updateSelectedCountText(scope, selectedCount);
+    };
+
+    refreshRef.current = refresh;
+
+    const handleCheckboxChange = () => {
+      window.setTimeout(refresh, 0);
+    };
+
+    document.addEventListener('change', handleCheckboxChange, true);
+    window.setTimeout(refresh, 0);
+
+    return () => {
+      document.removeEventListener('change', handleCheckboxChange, true);
+    };
+  }, []);
+
+  return (
+    <section
+      ref={rootRef}
+      className="mb-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"
+    >
+      <label className="block">
+        <span className="text-sm font-bold text-slate-900">회원 검색</span>
+        <input
+          value={query}
+          onChange={(event) => {
+            const nextQuery = event.target.value;
+
+            queryRef.current = nextQuery;
+            setQuery(nextQuery);
+            refreshSoon();
+          }}
+          placeholder="이름, 연락처, 역할로 회원을 검색하세요"
+          className="mt-4 h-14 w-full rounded-2xl border border-emerald-300 px-4 text-base text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+        />
+      </label>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={toggleSelectedOnly}
+          className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-bold text-slate-700"
+        >
+          {selectedOnly ? '전체 회원 보기' : '선택된 회원만 보기'}
+        </button>
+
+        <button
+          type="button"
+          onClick={toggleVisibleCheckboxes}
+          className="rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white"
+        >
+          {counts.selected >= counts.total && counts.total > 0
+            ? '전체 선택 해제'
+            : '전체 선택'}
+        </button>
+      </div>
+
+      <p className="mt-4 text-sm text-slate-500">
+        전체 {counts.total}명 · 선택된 회원 {counts.selected}명
+      </p>
+    </section>
+  );
+}

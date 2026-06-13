@@ -97,7 +97,10 @@ export async function updateRoundParticipantsAction(formData: FormData) {
   const { supabase } = await requireAdmin();
 
   const roundId = String(formData.get('roundId') ?? '').trim();
-
+  const memberIds = formData
+    .getAll('memberIds')
+    .map((value) => String(value).trim())
+    .filter(Boolean);
 
   if (!roundId) {
     redirect('/admin/rounds?error=round_not_found');

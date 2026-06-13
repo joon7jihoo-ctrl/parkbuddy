@@ -1,0 +1,174 @@
+'use client';
+
+import { ChangeEvent, useEffect, useRef, useState } from 'react';
+
+function normalize(value: string) {
+  return value.trim().toLowerCase();
+}
+
+function getScope(root: HTMLDivElement | null) {
+  return root?.closest('form') ?? document.body;
+}
+
+function getMemberItems(scope: ParentNode) {
+  return Array.from(
+    scope.querySelectorAll<HTMLElement>('[data-member-search-item]'),
+  );
+}
+
+function getCheckbox(item: HTMLElement) {
+  return item.querySelector<HTMLInputElement>('input[type="checkbox"]');
+}
+
+function getSearchText(item: HTMLElement) {
+  return normalize(
+    item.dataset.memberSearchText ??
+      item.textContent ??
+      '',
+  );
+}
+
+function getVisibleItems(scope: ParentNode) {
+  return getMemberItems(scope).filter((item) => item.style.display !== 'none');
+}
+
+function getCounts(scope: ParentNode) {
+  const items = getMemberItems(scope);
+  const selectedCount = items.filter((item) => getCheckbox(item)?.checked).length;
+
+  return {
+    totalCount: items.length,
+    selectedCount,
+  };
+}
+
+function applyMemberFilter(
+  scope: ParentNode,
+  query: string,
+  selectedOnly: boolean,
+) {
+  const normalizedQuery = normalize(query);
+
+  getMemberItems(scope).forEach((item) => {
+    const checkbox = getCheckbox(item);
+    const checked = checkbox?.checked ?? false;
+    const matchesQuery = getSearchText(item).includes(normalizedQuery);
+    const matchesSelectedOnly = !selectedOnly || checked;
+
+    item.style.display = matchesQuery && matchesSelectedOnly ? '' : 'none';
+  });
+}
+
+export function MemberSearchFilter() {
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const [query, setQuery] = useState('');
+  const [selectedOnly, setSelectedOnly] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
+  const [selectedCount, setSelectedCount] = useState(0);
+
+  function refreshCounts(scope: ParentNode) {
+    const counts = getCounts(scope);
+    setTotalCount(counts.totalCount);
+    setSelectedCount(counts.selectedCount);
+  }
+
+  function refreshView(nextQuery = query, nextSelectedOnly = selectedOnly) {
+    const scope = getScope(rootRef.current);
+    applyMemberFilter(scope, nextQuery, nextSelectedOnly);
+    refreshCounts(scope);
+  }
+
+  useEffect(() => {
+    const scope = getScope(rootRef.current);
+
+    const handleCheckboxChange = () => {
+      refreshView();
+    };
+
+    scope.addEventListener('change', handleCheckboxChange);
+
+    const timer = window.setTimeout(() => {
+      refreshView();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timer);
+      scope.removeEventListener('change', handleCheckboxChange);
+    };
+  }, []);
+
+  function handleQueryChange(event: ChangeEvent<HTMLInputElement>) {
+    const nextQuery = event.target.value;
+    setQuery(nextQuery);
+    refreshView(nextQuery, selectedOnly);
+  }
+
+  function handleSelectedOnlyToggle() {
+    const nextSelectedOnly = !selectedOnly;
+    setSelectedOnly(nextSelectedOnly);
+    refreshView(query, nextSelectedOnly);
+  }
+
+  function handleSelectToggle() {
+    const scope = getScope(rootRef.current);
+    const visibleItems = getVisibleItems(scope);
+    const visibleCheckboxes = visibleItems
+      .map((item) => getCheckbox(item))
+      .filter((checkbox): checkbox is HTMLInputElement => Boolean(checkbox));
+
+    const shouldSelectAll = visibleCheckboxes.some((checkbox) => !checkbox.checked);
+
+    visibleCheckboxes.forEach((checkbox) => {
+      checkbox.checked = shouldSelectAll;
+    });
+
+    refreshView(query, selectedOnly);
+  }
+
+  const visibleSelectedCountLabel =
+    selectedCount > 0 ? `${selectedCount}명 선택됨` : '선택된 회원 없음';
+
+  return (
+    <section
+      ref={rootRef}
+      className="mb-5 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"
+    >
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <label className="block flex-1">
+          <span className="text-sm font-semibold text-slate-700">
+            회원 검색
+          </span>
+          <input
+            type="search"
+            value={query}
+            onChange={handleQueryChange}
+            placeholder="이름으로 회원을 검색하세요"
+            className="mt-3 h-14 w-full rounded-2xl border border-slate-200 px-4 text-base text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+          />
+        </label>
+
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={handleSelectedOnlyToggle}
+            className="h-11 rounded-2xl bg-slate-100 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-200"
+          >
+            {selectedOnly ? '전체 회원 보기' : '선택된 회원만 보기'}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleSelectToggle}
+            className="h-11 rounded-2xl bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700"
+          >
+            {selectedCount > 0 ? '전체 선택 해제' : '전체 선택'}
+          </button>
+        </div>
+      </div>
+
+      <p className="mt-4 text-sm text-slate-500">
+        전체 {totalCount}명 · {visibleSelectedCountLabel}
+      </p>
+    </section>
+  );
+}

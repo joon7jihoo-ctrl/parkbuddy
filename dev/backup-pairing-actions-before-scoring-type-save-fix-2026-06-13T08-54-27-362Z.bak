@@ -249,26 +249,6 @@ export async function saveRoundPairingsAction(formData: FormData) {
     );
   }
 
-  const { error: pairingMetaError } = await supabase
-    .from('rounds')
-    .update({
-      game_type: gameType,
-      scoring_type: scoringType,
-    })
-    .eq('id', roundId);
-
-  if (pairingMetaError) {
-    console.error('round pairing metadata update failed', {
-      roundId,
-      gameType,
-      scoringType,
-      message: pairingMetaError.message,
-      details: pairingMetaError.details,
-      hint: pairingMetaError.hint,
-      code: pairingMetaError.code,
-    });
-  }
-
   revalidatePath('/admin');
   revalidatePath('/admin/rounds');
   revalidatePath(`/admin/rounds/${roundId}/pairings`);
@@ -276,5 +256,5 @@ export async function saveRoundPairingsAction(formData: FormData) {
   revalidatePath(`/admin/rounds/${roundId}/results`);
   revalidatePath('/admin/logs');
 
-  redirect(`/admin/rounds/${roundId}/scores?from=pairings_saved`);
+  redirect(`/admin/rounds/${roundId}/pairings?saved=1`);
 }

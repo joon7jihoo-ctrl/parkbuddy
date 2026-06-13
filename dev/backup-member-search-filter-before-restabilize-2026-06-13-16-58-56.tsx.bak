@@ -1,0 +1,213 @@
+'use client';
+
+import { useEffect, useRef } from 'react';
+
+type MemberSearchFilterProps = {
+  title?: string;
+};
+
+function getMemberCheckboxes() {
+  const checkboxes = Array.from(
+    document.querySelectorAll<HTMLInputElement>(
+      'input[type="checkbox"][name="memberIds"], input[type="checkbox"][name="memberIds[]"], input[type="checkbox"][data-member-checkbox]',
+    ),
+  );
+
+  return checkboxes.filter((checkbox) => !checkbox.disabled);
+}
+
+function getMemberRow(checkbox: HTMLInputElement) {
+  return (
+    checkbox.closest<HTMLElement>('[data-member-row]') ??
+    checkbox.closest<HTMLElement>('label') ??
+    checkbox.closest<HTMLElement>('article') ??
+    checkbox.closest<HTMLElement>('li') ??
+    checkbox.parentElement
+  );
+}
+
+function normalizeSearchText(value: string) {
+  return value.replace(/\s+/g, '').toLocaleLowerCase('ko-KR');
+}
+
+function setHidden(element: HTMLElement | null, hidden: boolean) {
+  if (!element) {
+    return;
+  }
+
+  element.hidden = hidden;
+  element.style.display = hidden ? 'none' : '';
+}
+
+export function MemberSearchFilter({ title = '회원 검색' }: MemberSearchFilterProps) {
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
+  const totalTextRef = useRef<HTMLSpanElement | null>(null);
+  const selectedTextRef = useRef<HTMLSpanElement | null>(null);
+  const selectedOnlyButtonRef = useRef<HTMLButtonElement | null>(null);
+  const selectToggleButtonRef = useRef<HTMLButtonElement | null>(null);
+  const selectedOnlyRef = useRef(false);
+
+  useEffect(() => {
+    function updatePageSelectedCount(selectedCount: number) {
+      const candidates = Array.from(document.querySelectorAll<HTMLElement>('p, span, div'));
+
+      for (const candidate of candidates) {
+        const text = candidate.textContent ?? '';
+
+        if (text.includes('참가할 회원을 선택하세요') && text.includes('현재') && text.includes('명 선택')) {
+          candidate.textContent = `참가할 회원을 선택하세요. 현재 ${selectedCount}명 선택됨.`;
+        }
+      }
+    }
+
+    function applyFilter() {
+      const query = normalizeSearchText(searchInputRef.current?.value ?? '');
+      const checkboxes = getMemberCheckboxes();
+
+      let selectedCount = 0;
+      let visibleCount = 0;
+      let visibleSelectedCount = 0;
+
+      for (const checkbox of checkboxes) {
+        const row = getMemberRow(checkbox);
+        const rowText = normalizeSearchText(row?.textContent ?? '');
+        const matchesQuery = !query || rowText.includes(query);
+        const matchesSelectedOnly = !selectedOnlyRef.current || checkbox.checked;
+        const visible = matchesQuery && matchesSelectedOnly;
+
+        if (checkbox.checked) {
+          selectedCount += 1;
+        }
+
+        if (visible) {
+          visibleCount += 1;
+
+          if (checkbox.checked) {
+            visibleSelectedCount += 1;
+          }
+        }
+
+        setHidden(row, !visible);
+      }
+
+      if (totalTextRef.current) {
+        totalTextRef.current.textContent = `전체 ${checkboxes.length}명`;
+      }
+
+      if (selectedTextRef.current) {
+        selectedTextRef.current.textContent =
+          selectedCount > 0 ? `선택된 회원 ${selectedCount}명` : '선택된 회원 없음';
+      }
+
+      if (selectedOnlyButtonRef.current) {
+        selectedOnlyButtonRef.current.textContent = selectedOnlyRef.current
+          ? '전체 회원 보기'
+          : '선택된 회원만 보기';
+      }
+
+      if (selectToggleButtonRef.current) {
+        const shouldClearVisibleSelection = visibleCount > 0 && visibleSelectedCount === visibleCount;
+        selectToggleButtonRef.current.textContent = shouldClearVisibleSelection
+          ? '전체 선택 해제'
+          : '전체 선택';
+      }
+
+      updatePageSelectedCount(selectedCount);
+    }
+
+    function handleSearchInput() {
+      applyFilter();
+    }
+
+    function handleCheckboxChange() {
+      applyFilter();
+    }
+
+    function handleSelectedOnlyToggle() {
+      selectedOnlyRef.current = !selectedOnlyRef.current;
+      applyFilter();
+    }
+
+    function handleSelectToggle() {
+      const query = normalizeSearchText(searchInputRef.current?.value ?? '');
+      const checkboxes = getMemberCheckboxes();
+      const visibleCheckboxes = checkboxes.filter((checkbox) => {
+        const row = getMemberRow(checkbox);
+        const rowText = normalizeSearchText(row?.textContent ?? '');
+        const matchesQuery = !query || rowText.includes(query);
+        const matchesSelectedOnly = !selectedOnlyRef.current || checkbox.checked;
+
+        return matchesQuery && matchesSelectedOnly && !row?.hidden;
+      });
+
+      const shouldClearVisibleSelection =
+        visibleCheckboxes.length > 0 && visibleCheckboxes.every((checkbox) => checkbox.checked);
+
+      for (const checkbox of visibleCheckboxes) {
+        checkbox.checked = !shouldClearVisibleSelection;
+        checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+
+      applyFilter();
+    }
+
+    const searchInput = searchInputRef.current;
+    const selectedOnlyButton = selectedOnlyButtonRef.current;
+    const selectToggleButton = selectToggleButtonRef.current;
+
+    searchInput?.addEventListener('input', handleSearchInput);
+    selectedOnlyButton?.addEventListener('click', handleSelectedOnlyToggle);
+    selectToggleButton?.addEventListener('click', handleSelectToggle);
+    document.addEventListener('change', handleCheckboxChange);
+
+    const firstFrame = window.requestAnimationFrame(applyFilter);
+    const secondFrame = window.setTimeout(applyFilter, 250);
+
+    return () => {
+      searchInput?.removeEventListener('input', handleSearchInput);
+      selectedOnlyButton?.removeEventListener('click', handleSelectedOnlyToggle);
+      selectToggleButton?.removeEventListener('click', handleSelectToggle);
+      document.removeEventListener('change', handleCheckboxChange);
+      window.cancelAnimationFrame(firstFrame);
+      window.clearTimeout(secondFrame);
+    };
+  }, []);
+
+  return (
+    <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <label className="block">
+        <span className="text-base font-bold text-slate-900">{title}</span>
+        <input
+          ref={searchInputRef}
+          type="search"
+          placeholder="이름으로 회원을 검색하세요"
+          className="mt-4 h-14 w-full rounded-2xl border border-emerald-300 px-4 text-base text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+        />
+      </label>
+
+      <div className="mt-4 flex flex-wrap gap-3">
+        <button
+          ref={selectedOnlyButtonRef}
+          type="button"
+          className="rounded-2xl bg-slate-100 px-5 py-3 text-sm font-bold text-slate-700"
+        >
+          선택된 회원만 보기
+        </button>
+
+        <button
+          ref={selectToggleButtonRef}
+          type="button"
+          className="rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white"
+        >
+          전체 선택
+        </button>
+      </div>
+
+      <p className="mt-5 text-sm text-slate-500">
+        <span ref={totalTextRef}>전체 0명</span>
+        <span> · </span>
+        <span ref={selectedTextRef}>선택된 회원 없음</span>
+      </p>
+    </section>
+  );
+}

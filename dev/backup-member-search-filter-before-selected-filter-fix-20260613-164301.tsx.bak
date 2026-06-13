@@ -1,0 +1,159 @@
+'use client';
+
+import { useEffect, useMemo, useState } from 'react';
+
+type MemberRow = {
+  element: HTMLElement;
+  checkbox: HTMLInputElement;
+  searchText: string;
+};
+
+function normalizeText(value: string) {
+  return value.trim().toLowerCase();
+}
+
+function findMemberRows(): MemberRow[] {
+  const checkboxSelectors = [
+    'input[type="checkbox"][name="memberIds"]',
+    'input[type="checkbox"][name="memberIds[]"]',
+    'input[type="checkbox"][data-member-checkbox="true"]',
+  ];
+
+  const checkboxes = Array.from(
+    document.querySelectorAll<HTMLInputElement>(checkboxSelectors.join(',')),
+  );
+
+  const seen = new Set<HTMLElement>();
+
+  return checkboxes
+    .map((checkbox) => {
+      const element =
+        checkbox.closest<HTMLElement>('[data-member-search-item]') ??
+        checkbox.closest<HTMLElement>('label') ??
+        checkbox.closest<HTMLElement>('article') ??
+        checkbox.parentElement;
+
+      if (!element || seen.has(element)) {
+        return null;
+      }
+
+      seen.add(element);
+
+      const searchText =
+        element.getAttribute('data-member-search-text') ??
+        element.textContent ??
+        '';
+
+      return {
+        element,
+        checkbox,
+        searchText: normalizeText(searchText),
+      };
+    })
+    .filter((row): row is MemberRow => row !== null);
+}
+
+export function MemberSearchFilter() {
+  const [query, setQuery] = useState('');
+  const [selectedOnly, setSelectedOnly] = useState(false);
+  const [selectedCount, setSelectedCount] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
+
+  const normalizedQuery = useMemo(() => normalizeText(query), [query]);
+
+  useEffect(() => {
+    function refresh() {
+      const rows = findMemberRows();
+      const nextSelectedCount = rows.filter((row) => row.checkbox.checked).length;
+
+      setSelectedCount(nextSelectedCount);
+      setTotalCount(rows.length);
+
+      rows.forEach((row) => {
+        const matchesQuery =
+          normalizedQuery.length === 0 || row.searchText.includes(normalizedQuery);
+        const matchesSelectedOnly = !selectedOnly || row.checkbox.checked;
+
+        row.element.hidden = !(matchesQuery && matchesSelectedOnly);
+      });
+    }
+
+    refresh();
+
+    document.addEventListener('change', refresh);
+    document.addEventListener('input', refresh);
+
+    return () => {
+      document.removeEventListener('change', refresh);
+      document.removeEventListener('input', refresh);
+    };
+  }, [normalizedQuery, selectedOnly]);
+
+  function handleToggleAll() {
+    const rows = findMemberRows();
+    const shouldSelect = selectedCount === 0;
+
+    rows.forEach((row) => {
+      const isVisible = !row.element.hidden;
+      const canUpdate = selectedOnly ? true : isVisible;
+
+      if (canUpdate) {
+        row.checkbox.checked = shouldSelect;
+        row.checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    });
+
+    setSelectedOnly(false);
+  }
+
+  return (
+    <section className="mb-6 rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm sm:p-6">
+      <div className="flex flex-col gap-4">
+        <div>
+          <label
+            htmlFor="member-search-filter"
+            className="text-sm font-bold text-slate-800"
+          >
+            회원 검색
+          </label>
+          <p className="mt-1 text-sm leading-6 text-slate-500">
+            이름을 입력하면 현재 라운드에 추가할 회원을 빠르게 찾을 수 있습니다.
+          </p>
+        </div>
+
+        <input
+          id="member-search-filter"
+          type="search"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="회원 이름으로 검색"
+          className="h-14 w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 text-base text-slate-900 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100"
+        />
+
+        <div className="flex flex-col gap-3 rounded-2xl bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm font-semibold text-slate-700">
+            선택 {selectedCount}명 / 전체 {totalCount}명
+          </p>
+
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setSelectedOnly((current) => !current)}
+              className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+            >
+              {selectedOnly ? '전체 회원 보기' : '선택된 회원만 보기'}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleToggleAll}
+              className="rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
+            >
+              {selectedCount > 0 ? '전체 선택 해제' : '전체 선택'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}

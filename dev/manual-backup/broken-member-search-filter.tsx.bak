@@ -1,0 +1,227 @@
+'use client';
+
+import { useEffect, useRef } from 'react';
+
+type MemberCheckbox = HTMLInputElement & {
+  dataset: DOMStringMap;
+};
+
+function normalizeText(value: string) {
+  return value.toLowerCase().replace(/\s+/g, '');
+}
+
+function getCheckboxes() {
+  return Array.from(
+    document.querySelectorAll<MemberCheckbox>('input[type="checkbox"][name="memberIds"]'),
+  );
+}
+
+function getMemberRow(checkbox: HTMLInputElement) {
+  return (
+    checkbox.closest<HTMLElement>('[data-member-search-row]') ??
+    checkbox.closest<HTMLElement>('label') ??
+    checkbox.closest<HTMLElement>('article') ??
+    checkbox.parentElement?.closest<HTMLElement>('div')
+  );
+}
+
+function getMemberText(checkbox: HTMLInputElement) {
+  const row = getMemberRow(checkbox);
+  return normalizeText(row?.textContent ?? '');
+}
+
+function updateActiveSummary(selectedCount: number) {
+  const candidates = Array.from(document.querySelectorAll<HTMLElement>('p, span, div'));
+
+  for (const candidate of candidates) {
+    const text = candidate.textContent ?? '';
+
+    if (text.includes('참가할 회원을 선택하세요') && text.includes('선택됨')) {
+      candidate.textContent = `참가할 회원을 선택하세요. 현재 ${selectedCount}명 선택됨.`;
+    }
+  }
+}
+
+export function MemberSearchFilter() {
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const onlySelectedRef = useRef(false);
+  const totalCountRef = useRef<HTMLSpanElement>(null);
+  const selectedCountRef = useRef<HTMLSpanElement>(null);
+  const visibleCountRef = useRef<HTMLSpanElement>(null);
+  const toggleSelectedButtonRef = useRef<HTMLButtonElement>(null);
+  const toggleAllButtonRef = useRef<HTMLButtonElement>(null);
+  const emptyMessageRef = useRef<HTMLParagraphElement>(null);
+
+  function refresh() {
+    const query = normalizeText(searchInputRef.current?.value ?? '');
+    const onlySelected = onlySelectedRef.current;
+    const checkboxes = getCheckboxes();
+    let visibleCount = 0;
+    let selectedCount = 0;
+
+    for (const checkbox of checkboxes) {
+      const row = getMemberRow(checkbox);
+
+      if (!row) {
+        continue;
+      }
+
+      row.dataset.memberSearchRow = 'true';
+
+      if (checkbox.checked) {
+        selectedCount += 1;
+      }
+
+      const memberText = getMemberText(checkbox);
+      const matchesQuery = query.length === 0 || memberText.includes(query);
+      const matchesSelected = !onlySelected || checkbox.checked;
+      const shouldShow = matchesQuery && matchesSelected;
+
+      row.hidden = !shouldShow;
+      row.style.display = shouldShow ? '' : 'none';
+
+      if (shouldShow) {
+        visibleCount += 1;
+      }
+    }
+
+    if (totalCountRef.current) {
+      totalCountRef.current.textContent = String(checkboxes.length);
+    }
+
+    if (selectedCountRef.current) {
+      selectedCountRef.current.textContent = String(selectedCount);
+    }
+
+    if (visibleCountRef.current) {
+      visibleCountRef.current.textContent = String(visibleCount);
+    }
+
+    if (toggleSelectedButtonRef.current) {
+      toggleSelectedButtonRef.current.textContent = onlySelected
+        ? '전체 회원 보기'
+        : '선택된 회원만 보기';
+    }
+
+    if (toggleAllButtonRef.current) {
+      const visibleCheckboxes = checkboxes.filter((checkbox) => {
+        const row = getMemberRow(checkbox);
+        return row ? !row.hidden && row.style.display !== 'none' : false;
+      });
+      const hasVisibleUnchecked = visibleCheckboxes.some((checkbox) => !checkbox.checked);
+
+      toggleAllButtonRef.current.textContent = hasVisibleUnchecked
+        ? '전체 선택'
+        : '전체 선택 해제';
+    }
+
+    if (emptyMessageRef.current) {
+      emptyMessageRef.current.hidden = visibleCount > 0;
+    }
+
+    updateActiveSummary(selectedCount);
+  }
+
+  useEffect(() => {
+    const checkboxes = getCheckboxes();
+
+    for (const checkbox of checkboxes) {
+      const row = getMemberRow(checkbox);
+
+      if (row) {
+        row.dataset.memberSearchRow = 'true';
+      }
+
+      checkbox.addEventListener('change', refresh);
+    }
+
+    window.setTimeout(refresh, 0);
+
+    return () => {
+      for (const checkbox of checkboxes) {
+        checkbox.removeEventListener('change', refresh);
+      }
+    };
+  }, []);
+
+  function handleSearchChange() {
+    refresh();
+  }
+
+  function handleToggleSelected() {
+    onlySelectedRef.current = !onlySelectedRef.current;
+    refresh();
+  }
+
+  function handleToggleAll() {
+    const checkboxes = getCheckboxes();
+    const visibleCheckboxes = checkboxes.filter((checkbox) => {
+      const row = getMemberRow(checkbox);
+      return row ? !row.hidden && row.style.display !== 'none' : false;
+    });
+
+    const shouldCheck = visibleCheckboxes.some((checkbox) => !checkbox.checked);
+
+    for (const checkbox of visibleCheckboxes) {
+      checkbox.checked = shouldCheck;
+      checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    refresh();
+  }
+
+  return (
+    <section className="mb-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+      <label
+        htmlFor="round-participant-member-search"
+        className="text-sm font-bold text-slate-900"
+      >
+        회원 검색
+      </label>
+
+      <input
+        ref={searchInputRef}
+        id="round-participant-member-search"
+        type="search"
+        placeholder="이름, 연락처, 역할로 검색하세요"
+        onChange={handleSearchChange}
+        onInput={handleSearchChange}
+        className="mt-4 h-14 w-full rounded-2xl border border-emerald-300 px-4 text-base text-slate-900 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+      />
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        <button
+          ref={toggleSelectedButtonRef}
+          type="button"
+          onClick={handleToggleSelected}
+          className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-bold text-slate-700"
+        >
+          선택된 회원만 보기
+        </button>
+
+        <button
+          ref={toggleAllButtonRef}
+          type="button"
+          onClick={handleToggleAll}
+          className="rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white"
+        >
+          전체 선택
+        </button>
+      </div>
+
+      <p className="mt-4 text-sm text-slate-500">
+        전체 <span ref={totalCountRef}>0</span>명 · 표시{' '}
+        <span ref={visibleCountRef}>0</span>명 · 선택{' '}
+        <span ref={selectedCountRef}>0</span>명
+      </p>
+
+      <p
+        ref={emptyMessageRef}
+        hidden
+        className="mt-3 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-500"
+      >
+        조건에 맞는 회원이 없습니다.
+      </p>
+    </section>
+  );
+}

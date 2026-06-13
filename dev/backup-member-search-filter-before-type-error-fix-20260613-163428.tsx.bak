@@ -1,0 +1,161 @@
+'use client';
+
+import { useEffect, useMemo, useRef, useState } from 'react';
+
+type MemberSearchFilterProps = {
+  children: React.ReactNode;
+};
+
+function normalizeSearchText(value: string) {
+  return value.trim().toLowerCase();
+}
+
+function getItemText(item: HTMLElement) {
+  return (
+    item.dataset.memberSearchText ??
+    item.textContent ??
+    ''
+  ).toLowerCase();
+}
+
+function getCheckboxes(root: HTMLElement) {
+  return Array.from(
+    root.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'),
+  );
+}
+
+function getItemFromCheckbox(checkbox: HTMLInputElement) {
+  return (
+    checkbox.closest<HTMLElement>('[data-member-search-item]') ??
+    checkbox.closest<HTMLElement>('label') ??
+    checkbox.parentElement
+  );
+}
+
+export function MemberSearchFilter({ children }: MemberSearchFilterProps) {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [keyword, setKeyword] = useState('');
+  const [showSelectedOnly, setShowSelectedOnly] = useState(false);
+  const [selectedCount, setSelectedCount] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
+
+  const normalizedKeyword = useMemo(
+    () => normalizeSearchText(keyword),
+    [keyword],
+  );
+
+  useEffect(() => {
+    const root = rootRef.current;
+
+    if (!root) {
+      return;
+    }
+
+    function syncCounts() {
+      const checkboxes = getCheckboxes(root);
+      setTotalCount(checkboxes.length);
+      setSelectedCount(
+        checkboxes.filter((checkbox) => checkbox.checked).length,
+      );
+    }
+
+    syncCounts();
+
+    root.addEventListener('change', syncCounts);
+
+    return () => {
+      root.removeEventListener('change', syncCounts);
+    };
+  }, []);
+
+  useEffect(() => {
+    const root = rootRef.current;
+
+    if (!root) {
+      return;
+    }
+
+    const checkboxes = getCheckboxes(root);
+
+    checkboxes.forEach((checkbox) => {
+      const item = getItemFromCheckbox(checkbox);
+
+      if (!item) {
+        return;
+      }
+
+      const matchesKeyword =
+        normalizedKeyword.length === 0 ||
+        getItemText(item).includes(normalizedKeyword);
+      const matchesSelected = !showSelectedOnly || checkbox.checked;
+
+      item.hidden = !(matchesKeyword && matchesSelected);
+    });
+  }, [normalizedKeyword, showSelectedOnly, selectedCount]);
+
+  function clearSelectedMembers() {
+    const root = rootRef.current;
+
+    if (!root) {
+      return;
+    }
+
+    getCheckboxes(root).forEach((checkbox) => {
+      checkbox.checked = false;
+      checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+
+    setSelectedCount(0);
+    setShowSelectedOnly(false);
+  }
+
+  return (
+    <section className="space-y-4">
+      <div className="rounded-3xl border border-emerald-100 bg-white p-4 shadow-sm">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <label className="block flex-1">
+            <span className="text-sm font-semibold text-slate-700">
+              회원 검색
+            </span>
+            <input
+              type="search"
+              value={keyword}
+              onChange={(event) => setKeyword(event.target.value)}
+              placeholder="이름을 입력하세요"
+              className="mt-2 h-12 w-full rounded-2xl border border-slate-200 px-4 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+            />
+          </label>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-2xl bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-700">
+              선택 {selectedCount}명 / 전체 {totalCount}명
+            </span>
+
+            <button
+              type="button"
+              onClick={() => setShowSelectedOnly((current) => !current)}
+              className="rounded-2xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700"
+            >
+              {showSelectedOnly ? '전체 보기' : '선택된 회원만 보기'}
+            </button>
+
+            <button
+              type="button"
+              onClick={clearSelectedMembers}
+              disabled={selectedCount === 0}
+              className="rounded-2xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              전체 선택 해제
+            </button>
+          </div>
+        </div>
+
+        <p className="mt-3 text-sm leading-6 text-slate-500">
+          검색어를 입력하면 현재 라운드에 추가할 회원 후보가 즉시 필터링됩니다.
+        </p>
+      </div>
+
+      <div ref={rootRef}>{children}</div>
+    </section>
+  );
+}
