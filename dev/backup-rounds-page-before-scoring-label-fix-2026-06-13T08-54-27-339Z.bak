@@ -96,7 +96,6 @@ function getScoringTypeLabel(value?: string | null) {
       return '스트로크';
     case 'new_peoria':
       return '신페리오';
-    case 'match':
     case 'match_play':
       return '매치 플레이';
     case 'stableford':
