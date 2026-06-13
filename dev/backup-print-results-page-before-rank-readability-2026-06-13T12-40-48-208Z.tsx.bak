@@ -1,0 +1,271 @@
+﻿import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { requireAdmin } from '@/lib/auth/require-member';
+import { PrintButton } from '@/components/print-button';
+
+type PrintPageProps = {
+  params: Promise<{
+    id: string;
+  }>;
+};
+
+type RoundInfo = {
+  id: string;
+  title: string | null;
+  course_name: string | null;
+  play_date: string | null;
+  game_type: string | null;
+  scoring_type: string | null;
+  club_id: string;
+};
+
+type ScoreRow = {
+  member_id: string;
+  strokes: number | null;
+  stableford_points: number | null;
+  memo: string | null;
+  member:
+    | {
+        id: string;
+        name: string;
+        handicap: number | null;
+      }
+    | null;
+};
+
+type RankedScore = ScoreRow & {
+  rank: number;
+  grossScore: string;
+  netScore: string;
+  resultScore: string;
+  sortValue: number;
+  hasScore: boolean;
+};
+
+function getGameTypeLabel(value?: string | null) {
+  switch (value) {
+    case 'individual':
+      return '개인전';
+    case 'foursome':
+      return '포섬';
+    case 'fourball':
+      return '포볼';
+    case 'scramble':
+      return '스크램블';
+    case 'team_match':
+      return '청백전';
+    default:
+      return '미지정';
+  }
+}
+
+function getScoringTypeLabel(value?: string | null) {
+  switch (value) {
+    case 'stroke':
+      return '스트로크 플레이';
+    case 'new_peoria':
+      return '신페리오';
+    case 'match':
+    case 'match':
+      return '매치 플레이';
+    case 'stableford':
+      return '스테이블포드';
+    default:
+      return '미지정';
+  }
+}
+
+function formatDate(value?: string | null) {
+  if (!value) {
+    return '-';
+  }
+
+  return new Date(`${value}T00:00:00`).toLocaleDateString('ko-KR');
+}
+
+function rankScores(scores: ScoreRow[], scoringType?: string | null): RankedScore[] {
+  const usesStableford = scoringType === 'stableford';
+
+  const ranked = scores
+    .map((score) => {
+      const handicap = score.member?.handicap ?? 0;
+      const gross = score.strokes;
+      const net = typeof gross === 'number' ? gross - handicap : null;
+      const stableford = score.stableford_points;
+      const scoreValue = usesStableford ? stableford : net;
+      const hasScore = typeof scoreValue === 'number';
+
+      return {
+        ...score,
+        rank: 0,
+        hasScore,
+        sortValue: hasScore
+          ? usesStableford
+            ? -scoreValue
+            : scoreValue
+          : Number.POSITIVE_INFINITY,
+        grossScore: typeof gross === 'number' ? `${gross}타` : '-',
+        netScore: typeof net === 'number' ? `${net}타` : '-',
+        resultScore: hasScore
+          ? usesStableford
+            ? `${scoreValue}점`
+            : `${scoreValue}타`
+          : '미입력',
+      };
+    })
+    .sort((left, right) => {
+      if (left.sortValue !== right.sortValue) {
+        return left.sortValue - right.sortValue;
+      }
+
+      return (left.member?.name ?? '').localeCompare(right.member?.name ?? '');
+    });
+
+  let previousSortValue: number | null = null;
+  let previousRank = 0;
+
+  return ranked.map((score, index) => {
+    if (!score.hasScore) {
+      return {
+        ...score,
+        rank: 0,
+      };
+    }
+
+    const nextRank =
+      previousSortValue === score.sortValue ? previousRank : index + 1;
+
+    previousSortValue = score.sortValue;
+    previousRank = nextRank;
+
+    return {
+      ...score,
+      rank: nextRank,
+    };
+  });
+}
+
+export default async function RoundResultsPrintPage({ params }: PrintPageProps) {
+  const routeParams = await params;
+  const { supabase, member } = await requireAdmin();
+
+  const { data: round, error: roundError } = await supabase
+    .from('rounds')
+    .select(
+      `
+      id,
+      title,
+      course_name,
+      play_date,
+      game_type,
+      scoring_type,
+      club_id
+    `,
+    )
+    .eq('id', routeParams.id)
+    .eq('club_id', member.club_id)
+    .maybeSingle();
+
+  if (roundError) {
+    throw new Error(roundError.message);
+  }
+
+  if (!round) {
+    notFound();
+  }
+
+  const typedRound = round as RoundInfo;
+
+  const { data: scores, error: scoresError } = await supabase
+    .from('round_scores')
+    .select(
+      `
+      member_id,
+      strokes,
+      stableford_points,
+      memo,
+      member:member_id (
+        id,
+        name,
+        handicap
+      )
+    `,
+    )
+    .eq('round_id', typedRound.id)
+    .order('strokes', { ascending: true, nullsFirst: false });
+
+  if (scoresError && scoresError.code !== '42P01') {
+    throw new Error(scoresError.message);
+  }
+
+  const rankedScores = rankScores(
+    (scores ?? []) as unknown as ScoreRow[],
+    typedRound.scoring_type,
+  );
+
+  return (
+    <main data-parkbuddy-print-page="true" className="mx-auto max-w-5xl bg-white px-6 py-8 text-slate-900 print:max-w-none print:px-0 print:py-0">
+      <div className="mb-6 flex items-center justify-between gap-3 print:hidden">
+        <Link
+          href={`/admin/rounds/${typedRound.id}/results`}
+          className="rounded-2xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700"
+        >
+          결과 페이지로 돌아가기
+        </Link>
+        <PrintButton />
+      </div>
+
+      <header className="border-b-2 border-slate-900 pb-5">
+        <p className="text-sm font-semibold text-slate-500">ParkBuddy 결과표</p>
+        <h1 className="mt-2 text-3xl font-bold">{typedRound.title ?? '라운드 결과표'}</h1>
+        <div className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
+          <p>장소: {typedRound.course_name ?? '-'}</p>
+          <p>일자: {formatDate(typedRound.play_date)}</p>
+          <p>경기 형태: {getGameTypeLabel(typedRound.game_type)}</p>
+          <p>점수 계산: {getScoringTypeLabel(typedRound.scoring_type)}</p>
+        </div>
+      </header>
+
+      <section className="mt-6">
+        <table className="w-full border-collapse text-sm">
+          <thead>
+            <tr className="border-b border-slate-900">
+              <th className="px-3 py-3 text-left">순위</th>
+              <th className="px-3 py-3 text-left">회원명</th>
+              <th className="px-3 py-3 text-right">핸디캡</th>
+              <th className="px-3 py-3 text-right">총 타수</th>
+              <th className="px-3 py-3 text-right">보정 타수</th>
+              <th className="px-3 py-3 text-right">결과</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rankedScores.length ? (
+              rankedScores.map((score) => (
+                <tr key={score.member_id} className="border-b border-slate-200">
+                  <td className="px-3 py-3">{score.rank ? `${score.rank}위` : '-'}</td>
+                  <td className="px-3 py-3 font-semibold">
+                    {score.member?.name ?? '이름 없는 회원'}
+                  </td>
+                  <td className="px-3 py-3 text-right">{score.member?.handicap ?? 0}</td>
+                  <td className="px-3 py-3 text-right">{score.grossScore}</td>
+                  <td className="px-3 py-3 text-right">{score.netScore}</td>
+                  <td className="px-3 py-3 text-right font-bold">{score.resultScore}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={6} className="px-3 py-12 text-center text-slate-500">
+                  아직 입력된 스코어가 없습니다.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </section>
+
+      <footer className="mt-8 text-xs text-slate-500">
+        이 결과표는 ParkBuddy에서 생성되었습니다.
+      </footer>
+    </main>
+  );
+}
