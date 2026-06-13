@@ -299,25 +299,9 @@ export default async function RoundResultsPage({ params }: ResultsPageProps) {
             {leader?.member?.name ?? '-'}
           </p>
         </div>
-
-        <div className="rounded-3xl bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">미입력 인원</p>
-          <p className="mt-2 text-xl font-bold text-slate-900">
-            {rankedScores.filter((score) => !score.hasScore).length}명
-          </p>
-        </div>
       </section>
 
-      
-      <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5 text-sm leading-6 text-emerald-800">
-        <p className="font-bold text-emerald-900">결과 입력 현황</p>
-        <p className="mt-1">
-          입력 완료 {rankedScores.filter((score) => score.hasScore).length}명 ·
-          미입력 {rankedScores.filter((score) => !score.hasScore).length}명
-        </p>
-      </section>
-
-<section className="rounded-3xl border border-blue-200 bg-blue-50 p-5 text-sm leading-6 text-blue-800">
+      <section className="rounded-3xl border border-blue-200 bg-blue-50 p-5 text-sm leading-6 text-blue-800">
         {getCalculationNote(typedRound.scoring_type)}
       </section>
 
