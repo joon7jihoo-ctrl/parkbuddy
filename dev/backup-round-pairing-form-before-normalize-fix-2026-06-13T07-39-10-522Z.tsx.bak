@@ -14,8 +14,8 @@ type Participant = {
 type PairingFormProps = {
   roundId: string;
   participants: Participant[];
-  defaultPlayMode?: PlayMode | string | null;
-  defaultScoringType?: ScoringType | string | null;
+  defaultPlayMode?: PlayMode;
+  defaultScoringType?: ScoringType;
   defaultAssignments?: Record<string, number>;
   action: (formData: FormData) => void | Promise<void>;
 };
@@ -81,31 +81,6 @@ const SCORING_OPTIONS_BY_PLAY_MODE: Record<
     { value: 'match_play', label: '매치 플레이' },
   ],
 };
-
-function normalizePlayMode(value?: string | null): PlayMode {
-  if (
-    value === 'individual' ||
-    value === 'foursome' ||
-    value === 'fourball' ||
-    value === 'scramble' ||
-    value === 'team_match'
-  ) {
-    return value;
-  }
-
-  return 'team_match';
-}
-
-function normalizeScoringType(
-  value: string | null | undefined,
-  playMode: PlayMode,
-): ScoringType {
-  const options = SCORING_OPTIONS_BY_PLAY_MODE[playMode];
-  const normalizedValue = value === 'match' ? 'match_play' : value;
-
-  const matched = options.find((option) => option.value === normalizedValue);
-  return matched?.value ?? options[0]?.value ?? 'stroke';
-}
 
 function getRecommendedGroupSizes(totalParticipants: number) {
   if (totalParticipants < 3 || totalParticipants === 5) {
@@ -190,30 +165,23 @@ export function RoundPairingForm({
   defaultAssignments,
   action,
 }: PairingFormProps) {
-  const initialPlayMode = normalizePlayMode(defaultPlayMode);
-  const initialScoringType = normalizeScoringType(
-    defaultScoringType,
-    initialPlayMode,
-  );
-
   const groupSizes = useMemo(
     () => getRecommendedGroupSizes(participants.length),
     [participants.length],
   );
 
-  const [playMode, setPlayMode] = useState<PlayMode>(initialPlayMode);
-  const [scoringType, setScoringType] =
-    useState<ScoringType>(initialScoringType);
+  const [playMode, setPlayMode] = useState<PlayMode>(defaultPlayMode);
+  const [scoringType, setScoringType] = useState<ScoringType>(
+    defaultScoringType,
+  );
   const [assignments, setAssignments] = useState<Record<string, number>>(() =>
     buildInitialAssignments(participants, groupSizes, defaultAssignments),
   );
 
-  const scoringOptions = SCORING_OPTIONS_BY_PLAY_MODE[playMode] ?? SCORING_OPTIONS_BY_PLAY_MODE.team_match;
+  const scoringOptions = SCORING_OPTIONS_BY_PLAY_MODE[playMode];
 
-  function handlePlayModeChange(nextValue: string) {
-    const nextPlayMode = normalizePlayMode(nextValue);
-    const nextOptions =
-      SCORING_OPTIONS_BY_PLAY_MODE[nextPlayMode] ?? SCORING_OPTIONS_BY_PLAY_MODE.team_match;
+  function handlePlayModeChange(nextPlayMode: PlayMode) {
+    const nextOptions = SCORING_OPTIONS_BY_PLAY_MODE[nextPlayMode];
     const firstOption = nextOptions[0];
 
     setPlayMode(nextPlayMode);
@@ -261,7 +229,9 @@ export function RoundPairingForm({
             </span>
             <select
               value={playMode}
-              onChange={(event) => handlePlayModeChange(event.target.value)}
+              onChange={(event) =>
+                handlePlayModeChange(event.target.value as PlayMode)
+              }
               className="mt-2 h-12 w-full rounded-2xl border border-slate-200 px-4 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
             >
               {PLAY_MODE_OPTIONS.map((option) => (
@@ -279,7 +249,7 @@ export function RoundPairingForm({
             <select
               value={scoringType}
               onChange={(event) =>
-                setScoringType(normalizeScoringType(event.target.value, playMode))
+                setScoringType(event.target.value as ScoringType)
               }
               className="mt-2 h-12 w-full rounded-2xl border border-slate-200 px-4 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
             >
