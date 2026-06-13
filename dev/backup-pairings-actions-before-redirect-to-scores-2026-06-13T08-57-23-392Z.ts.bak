@@ -276,5 +276,5 @@ export async function saveRoundPairingsAction(formData: FormData) {
   revalidatePath(`/admin/rounds/${roundId}/results`);
   revalidatePath('/admin/logs');
 
-  redirect(`/admin/rounds/${roundId}/scores?from=pairings_saved`);
+  redirect(`/admin/rounds/${roundId}/pairings?saved=1`);
 }
