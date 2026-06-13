@@ -35,12 +35,16 @@ textarea {
 }
 
 .safe-bottom {
-  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+
+[data-bottom-nav] {
+  padding-left: max(0.5rem, env(safe-area-inset-left));
+  padding-right: max(0.5rem, env(safe-area-inset-right));
 }
 
 
 /* ParkBuddy print page: hide app bottom navigation */
-body:has([data-parkbuddy-print-page="true"]) nav,
 body:has([data-parkbuddy-print-page="true"]) [data-bottom-nav],
 body:has([data-parkbuddy-print-page="true"]) .fixed.bottom-0,
 body:has([data-parkbuddy-print-page="true"]) .fixed.inset-x-0.bottom-0 {

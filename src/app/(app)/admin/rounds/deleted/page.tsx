@@ -63,11 +63,11 @@ function getStatusLabel(status: Round['status']) {
 function getStatusClassName(status: Round['status']) {
   switch (status) {
     case 'completed':
-      return 'bg-blue-100 text-blue-700';
+      return 'bg-blue-100 text-blue-700 ring-blue-200';
     case 'cancelled':
-      return 'bg-red-100 text-red-700';
+      return 'bg-red-100 text-red-700 ring-red-200';
     default:
-      return 'bg-emerald-100 text-emerald-700';
+      return 'bg-emerald-100 text-emerald-700 ring-emerald-200';
   }
 }
 
@@ -135,6 +135,18 @@ function countParticipantsByRound(participants: RoundParticipant[]) {
   }, {});
 }
 
+function actionLinkClassName(variant: 'default' | 'dark' | 'green' = 'default') {
+  if (variant === 'dark') {
+    return 'inline-flex min-h-11 items-center justify-center rounded-2xl bg-slate-900 px-3 py-2 text-center text-sm font-bold text-white shadow-sm transition hover:bg-slate-800';
+  }
+
+  if (variant === 'green') {
+    return 'inline-flex min-h-11 items-center justify-center rounded-2xl bg-emerald-600 px-3 py-2 text-center text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700';
+  }
+
+  return 'inline-flex min-h-11 items-center justify-center rounded-2xl bg-slate-100 px-3 py-2 text-center text-sm font-bold text-slate-700 transition hover:bg-slate-200';
+}
+
 export default async function AdminDeletedRoundsPage({
   searchParams,
 }: AdminDeletedRoundsPageProps) {
@@ -187,64 +199,55 @@ export default async function AdminDeletedRoundsPage({
   const errorMessage = getErrorMessage(params.error);
 
   return (
-    <main className="mx-auto max-w-5xl space-y-5 px-4 py-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <p className="text-sm font-semibold text-amber-600">
-            라운드 안전 관리
-          </p>
-          <h1 className="mt-1 text-2xl font-bold text-slate-900">
+    <main className="mx-auto max-w-7xl space-y-4 px-3 py-4 sm:px-4 sm:py-5 lg:px-6">
+      <header className="rounded-[2rem] bg-white/80 p-4 shadow-sm ring-1 ring-slate-100 sm:p-5 lg:flex lg:items-end lg:justify-between lg:gap-6">
+        <div className="min-w-0">
+          <p className="text-sm font-bold text-amber-600">라운드 안전 관리</p>
+          <h1 className="mt-1 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">
             삭제된 라운드
           </h1>
-          <p className="mt-1 text-sm leading-6 text-slate-500">
-            삭제된 라운드는 기본 목록에서 숨겨집니다. 참가자, 조 편성,
-            스코어, 결과 데이터는 보존되며 필요할 때 복구할 수 있습니다.
+          <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">
+            삭제된 라운드는 기본 목록에서 숨겨집니다. 복구 전까지 일반 운영 작업은 막고, 데이터는 그대로 보존합니다.
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <Link
-            href="/admin/rounds"
-            className="rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm"
-          >
-            기본 라운드 목록
+        <nav className="mt-4 grid grid-cols-2 gap-2 text-sm sm:grid-cols-3 lg:mt-0 lg:min-w-[28rem]">
+          <Link href="/admin/rounds" className={actionLinkClassName('dark')}>
+            라운드 목록
           </Link>
-          <Link
-            href="/admin"
-            className="rounded-2xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700"
-          >
+          <Link href="/admin/rounds/calendar" className={actionLinkClassName()}>
+            월별 일정
+          </Link>
+          <Link href="/admin" className={actionLinkClassName()}>
             대시보드
           </Link>
-        </div>
+        </nav>
       </header>
 
-      <section className="rounded-3xl border border-amber-200 bg-amber-50 p-5 text-sm leading-6 text-amber-900">
-        <p className="font-bold">복구 전 확인해 주세요.</p>
+      <section className="rounded-3xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">
+        <p className="font-black">복구 전 확인해 주세요.</p>
         <p className="mt-1">
-          이 화면에서는 삭제된 라운드의 일반 운영 작업을 막고 복구만 제공합니다.
-          복구하면 해당 라운드는 기본 라운드 목록에 다시 표시됩니다.
+          복구하면 해당 라운드는 기본 라운드 목록에 다시 표시되고, 참가자/조 편성/스코어/결과 데이터는 그대로 유지됩니다.
         </p>
       </section>
 
       {params.roundRestored && (
-        <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5 text-sm font-semibold text-emerald-700">
+        <section className="rounded-3xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700">
           라운드가 복구되었습니다. 기본 라운드 목록에서 다시 확인할 수 있습니다.
         </section>
       )}
 
       {errorMessage && (
-        <section className="rounded-3xl border border-red-200 bg-red-50 p-5 text-sm leading-6 text-red-700">
+        <section className="rounded-3xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold leading-6 text-red-700">
           {errorMessage}
         </section>
       )}
 
-      <section className="overflow-hidden rounded-3xl bg-white shadow-sm">
-        <div className="border-b border-slate-100 px-5 py-4">
-          <h2 className="font-bold text-slate-900">
-            삭제된 라운드 {rounds.length}개
-          </h2>
-          <p className="mt-1 text-sm text-slate-500">
-            삭제된 라운드는 실제 삭제되지 않았으며, 복구 전까지 기본 목록에서만 숨겨집니다.
+      <section className="overflow-hidden rounded-[2rem] bg-white shadow-sm ring-1 ring-slate-100">
+        <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 sm:px-5">
+          <h2 className="font-black text-slate-950">삭제된 라운드 {rounds.length}개</h2>
+          <p className="hidden text-xs font-semibold text-slate-400 sm:block">
+            복구 중심으로 단순화했습니다.
           </p>
         </div>
 
@@ -252,106 +255,94 @@ export default async function AdminDeletedRoundsPage({
           {rounds.length ? (
             rounds.map((round) => {
               const participantCount = participantCounts[round.id] ?? 0;
+              const roundTitle = round.title ?? '이름 없는 라운드';
 
               return (
-                <article
-                  key={round.id}
-                  className="grid gap-4 px-5 py-4 md:grid-cols-[1fr_auto]"
-                >
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="font-bold text-slate-900">
-                        {round.title ?? '이름 없는 라운드'}
-                      </h3>
-                      <span
-                        className={[
-                          'rounded-full px-2 py-1 text-xs font-semibold',
-                          getStatusClassName(round.status),
-                        ].join(' ')}
-                      >
-                        {getStatusLabel(round.status)}
-                      </span>
-                      <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">
-                        참가자 {participantCount}명
-                      </span>
-                      <span className="rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-700">
-                        삭제됨
-                      </span>
+                <article key={round.id} className="px-4 py-4 sm:px-5 lg:py-5">
+                  <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_17rem] xl:items-start">
+                    <div className="min-w-0 space-y-3">
+                      <div className="flex min-w-0 flex-wrap items-center gap-2">
+                        <h3 className="min-w-0 truncate text-lg font-black tracking-tight text-slate-950 sm:text-xl">
+                          {roundTitle}
+                        </h3>
+                        <span
+                          className={[
+                            'inline-flex items-center rounded-full px-2.5 py-1 text-xs font-black ring-1',
+                            getStatusClassName(round.status),
+                          ].join(' ')}
+                        >
+                          {getStatusLabel(round.status)}
+                        </span>
+                        <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-black text-slate-600">
+                          참가자 {participantCount}명
+                        </span>
+                        <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-1 text-xs font-black text-amber-700">
+                          삭제됨
+                        </span>
+                      </div>
+
+                      <dl className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-3 lg:grid-cols-6">
+                        <div className="rounded-2xl bg-slate-50 px-3 py-2">
+                          <dt className="text-[11px] font-bold text-slate-400">골프장</dt>
+                          <dd className="mt-1 truncate font-bold text-slate-800">{round.course_name ?? '-'}</dd>
+                        </div>
+                        <div className="rounded-2xl bg-slate-50 px-3 py-2">
+                          <dt className="text-[11px] font-bold text-slate-400">날짜</dt>
+                          <dd className="mt-1 font-bold text-slate-800">{formatDate(round.play_date)}</dd>
+                        </div>
+                        <div className="rounded-2xl bg-slate-50 px-3 py-2">
+                          <dt className="text-[11px] font-bold text-slate-400">시간</dt>
+                          <dd className="mt-1 font-bold text-slate-800">{formatTime(round.start_time)}</dd>
+                        </div>
+                        <div className="rounded-2xl bg-slate-50 px-3 py-2">
+                          <dt className="text-[11px] font-bold text-slate-400">경기</dt>
+                          <dd className="mt-1 truncate font-bold text-slate-800">{getGameTypeLabel(round.game_type)}</dd>
+                        </div>
+                        <div className="rounded-2xl bg-slate-50 px-3 py-2">
+                          <dt className="text-[11px] font-bold text-slate-400">점수</dt>
+                          <dd className="mt-1 truncate font-bold text-slate-800">{getScoringTypeLabel(round.scoring_type)}</dd>
+                        </div>
+                        <div className="rounded-2xl bg-amber-50 px-3 py-2">
+                          <dt className="text-[11px] font-bold text-amber-500">삭제</dt>
+                          <dd className="mt-1 truncate font-bold text-amber-800">{formatDeletedAt(round.deleted_at)}</dd>
+                        </div>
+                      </dl>
+
+                      {round.memo && (
+                        <details className="group rounded-2xl bg-slate-50 px-3 py-2 text-sm text-slate-600 sm:px-4 sm:py-3">
+                          <summary className="cursor-pointer list-none font-bold text-slate-700">
+                            <span className="inline-flex items-center gap-2">
+                              메모
+                              <span className="text-xs text-slate-400 group-open:hidden">펼치기</span>
+                              <span className="hidden text-xs text-slate-400 group-open:inline">접기</span>
+                            </span>
+                          </summary>
+                          <p className="mt-2 whitespace-pre-wrap leading-6">{round.memo}</p>
+                        </details>
+                      )}
                     </div>
 
-                    <dl className="mt-3 grid gap-2 text-sm text-slate-600 sm:grid-cols-3 lg:grid-cols-6">
-                      <div>
-                        <dt className="text-xs text-slate-400">골프장</dt>
-                        <dd className="font-medium text-slate-700">
-                          {round.course_name ?? '-'}
-                        </dd>
-                      </div>
-
-                      <div>
-                        <dt className="text-xs text-slate-400">날짜</dt>
-                        <dd className="font-medium text-slate-700">
-                          {formatDate(round.play_date)}
-                        </dd>
-                      </div>
-
-                      <div>
-                        <dt className="text-xs text-slate-400">시작 시간</dt>
-                        <dd className="font-medium text-slate-700">
-                          {formatTime(round.start_time)}
-                        </dd>
-                      </div>
-
-                      <div>
-                        <dt className="text-xs text-slate-400">경기 형태</dt>
-                        <dd className="font-medium text-slate-700">
-                          {getGameTypeLabel(round.game_type)}
-                        </dd>
-                      </div>
-
-                      <div>
-                        <dt className="text-xs text-slate-400">점수 계산</dt>
-                        <dd className="font-medium text-slate-700">
-                          {getScoringTypeLabel(round.scoring_type)}
-                        </dd>
-                      </div>
-
-                      <div>
-                        <dt className="text-xs text-slate-400">삭제 시각</dt>
-                        <dd className="font-medium text-slate-700">
-                          {formatDeletedAt(round.deleted_at)}
-                        </dd>
-                      </div>
-                    </dl>
-
-                    {round.memo && (
-                      <p className="mt-3 rounded-2xl bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-600">
-                        {round.memo}
+                    <div className="space-y-2 xl:rounded-3xl xl:bg-slate-50 xl:p-3">
+                      <form action={adminRestoreRoundAction}>
+                        <input type="hidden" name="roundId" value={round.id} />
+                        <ConfirmSubmitButton
+                          confirmMessage={`${roundTitle}를 기본 라운드 목록으로 복구할까요?`}
+                          className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-emerald-600 px-4 py-2 text-sm font-black text-white shadow-sm transition hover:bg-emerald-700"
+                        >
+                          라운드 복구
+                        </ConfirmSubmitButton>
+                      </form>
+                      <p className="rounded-2xl bg-white px-3 py-2 text-xs leading-5 text-slate-500 ring-1 ring-slate-100 xl:bg-transparent xl:ring-0">
+                        복구 후 일반 운영 화면에서 참가자, 조 편성, 스코어를 다시 관리할 수 있습니다.
                       </p>
-                    )}
-                  </div>
-
-                  <div className="flex flex-col gap-2 md:min-w-40 md:items-end md:justify-center">
-                    <form action={adminRestoreRoundAction}>
-                      <input type="hidden" name="roundId" value={round.id} />
-                      <ConfirmSubmitButton
-                        confirmMessage={`${round.title ?? "이 라운드"}를 기본 라운드 목록으로 복구할까요?`}
-                        className="w-full rounded-2xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 md:w-auto"
-                      >
-                        라운드 복구
-                      </ConfirmSubmitButton>
-                    </form>
-                    <p className="text-xs leading-5 text-slate-500 md:text-right">
-                      복구 후 참가자, 조 편성, 스코어, 결과 데이터는 그대로 유지됩니다.
-                    </p>
+                    </div>
                   </div>
                 </article>
               );
             })
           ) : (
             <div className="px-5 py-12 text-center">
-              <p className="text-sm font-semibold text-slate-700">
-                삭제된 라운드가 없습니다.
-              </p>
+              <p className="text-sm font-bold text-slate-700">삭제된 라운드가 없습니다.</p>
               <p className="mt-1 text-sm text-slate-500">
                 삭제된 라운드가 생기면 이 화면에서 확인하고 복구할 수 있습니다.
               </p>

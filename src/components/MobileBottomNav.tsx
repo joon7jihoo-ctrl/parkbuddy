@@ -18,8 +18,12 @@ export function MobileBottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white/95 backdrop-blur md:hidden safe-bottom">
-      <div className="grid grid-cols-6">
+    <nav
+      data-bottom-nav
+      aria-label="앱 하단 주요 메뉴"
+      className="fixed inset-x-0 bottom-0 z-50 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:px-4 print:hidden"
+    >
+      <div className="mx-auto grid max-w-3xl grid-cols-6 overflow-hidden rounded-3xl border border-slate-200 bg-white/95 shadow-lg shadow-slate-900/10 backdrop-blur supports-[backdrop-filter]:bg-white/85 md:max-w-2xl">
         {navItems.map((item) => {
           const active = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
           const Icon = item.icon;
@@ -29,12 +33,14 @@ export function MobileBottomNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex h-16 flex-col items-center justify-center gap-1 text-[11px]',
-                active ? 'font-semibold text-emerald-600' : 'text-slate-500'
+                'flex min-h-14 flex-col items-center justify-center gap-0.5 px-1 text-[10px] transition sm:min-h-16 sm:gap-1 sm:text-[11px] md:min-h-[64px] md:px-3',
+                active
+                  ? 'bg-emerald-50 font-semibold text-emerald-700'
+                  : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
               )}
               aria-current={active ? 'page' : undefined}
             >
-              <Icon size={20} aria-hidden />
+              <Icon className="size-5 md:size-[22px]" aria-hidden />
               <span>{item.label}</span>
             </Link>
           );

@@ -82,10 +82,10 @@ function StatCard({
   description: string;
 }) {
   return (
-    <article className="rounded-3xl bg-white p-5 shadow-sm">
+    <article className="rounded-3xl bg-white p-4 shadow-sm sm:p-5">
       <p className="text-sm font-semibold text-slate-500">{label}</p>
-      <p className="mt-3 text-3xl font-black text-slate-900">{value}</p>
-      <p className="mt-2 text-sm leading-6 text-slate-500">{description}</p>
+      <p className="mt-2 text-2xl font-black text-slate-900 sm:mt-3 sm:text-3xl">{value}</p>
+      <p className="mt-1 text-sm leading-5 text-slate-500 sm:mt-2 sm:leading-6">{description}</p>
     </article>
   );
 }
@@ -104,11 +104,11 @@ function DashboardLinkCard({
   return (
     <Link
       href={href}
-      className="rounded-3xl bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+      className="rounded-3xl bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-5"
     >
       <p className="text-sm font-semibold text-emerald-600">{eyebrow}</p>
       <h2 className="mt-2 text-lg font-bold text-slate-900">{title}</h2>
-      <p className="mt-1 text-sm leading-6 text-slate-500">{description}</p>
+      <p className="mt-1 text-sm leading-5 text-slate-500 sm:leading-6">{description}</p>
     </Link>
   );
 }
@@ -172,8 +172,8 @@ export default async function AdminDashboardPage() {
     : 0;
 
   return (
-    <main className="mx-auto max-w-6xl space-y-6 px-4 py-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <main className="mx-auto max-w-6xl space-y-4 px-3 py-4 sm:space-y-5 sm:px-4 sm:py-5 lg:py-6">
+      <header className="flex flex-col gap-3 rounded-3xl bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-5">
         <div>
           <p className="text-sm font-semibold text-emerald-600">운영진 대시보드</p>
           <h1 className="mt-1 text-2xl font-bold text-slate-900">ParkBuddy 운영 현황</h1>
@@ -182,29 +182,29 @@ export default async function AdminDashboardPage() {
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap sm:justify-end">
           <Link
             href="/admin/members"
-            className="rounded-2xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white"
+            className="rounded-2xl bg-emerald-600 px-3 py-3 text-center text-sm font-semibold text-white sm:px-4 sm:py-2"
           >
             회원 관리
           </Link>
           <Link
             href="/admin/rounds"
-            className="rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm"
+            className="rounded-2xl bg-slate-900 px-3 py-3 text-center text-sm font-semibold text-white shadow-sm sm:px-4 sm:py-2"
           >
             라운드 관리
           </Link>
           <Link
             href="/admin/logs"
-            className="rounded-2xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700"
+            className="rounded-2xl bg-slate-100 px-3 py-3 text-center text-sm font-semibold text-slate-700 sm:px-4 sm:py-2"
           >
             작업 로그
           </Link>
         </div>
       </header>
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label="활성 회원"
           value={activeMembers.length}
@@ -227,7 +227,7 @@ export default async function AdminDashboardPage() {
         />
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <DashboardLinkCard
           href="/admin/rounds"
           eyebrow="라운드"
@@ -254,8 +254,8 @@ export default async function AdminDashboardPage() {
         />
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-[1fr_1fr]">
-        <article className="rounded-3xl bg-white p-5 shadow-sm">
+      <section className="grid gap-4 lg:grid-cols-[1fr_1fr]">
+        <article className="rounded-3xl bg-white p-4 shadow-sm sm:p-5">
           <div className="flex items-center justify-between gap-3">
             <div>
               <h2 className="font-bold text-slate-900">최근 활성 회원</h2>
@@ -297,7 +297,7 @@ export default async function AdminDashboardPage() {
           </div>
         </article>
 
-        <article className="rounded-3xl bg-white p-5 shadow-sm">
+        <article className="rounded-3xl bg-white p-4 shadow-sm sm:p-5">
           <div className="flex items-center justify-between gap-3">
             <div>
               <h2 className="font-bold text-slate-900">최근 관리자 작업</h2>
@@ -331,7 +331,7 @@ export default async function AdminDashboardPage() {
         </article>
       </section>
 
-      <section className="rounded-3xl border border-amber-200 bg-amber-50 p-5">
+      <section className="rounded-3xl border border-amber-200 bg-amber-50 p-4 sm:p-5">
         <h2 className="font-bold text-amber-900">운영 체크 포인트</h2>
         <p className="mt-2 text-sm leading-6 text-amber-800">
           연결 대기 회원이 많다면 회원들에게 카카오 로그인 후 연결 코드를 입력하도록 안내하세요.
