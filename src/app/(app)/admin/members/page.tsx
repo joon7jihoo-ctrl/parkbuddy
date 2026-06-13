@@ -87,6 +87,13 @@ function getErrorMessage(error?: string) {
       return '관리자 함수 실행 권한이 없습니다. Supabase 권한 설정을 확인해 주세요.';
     case 'unknown':
       return '알 수 없는 오류가 발생했습니다.';
+    case 'round_soft_delete':
+    case 'round.soft_delete':
+    case 'round.delete':
+      return '라운드 삭제 보관';
+    case 'round_restore':
+    case 'round.restore':
+      return '라운드 복구';
     default:
       return null;
   }

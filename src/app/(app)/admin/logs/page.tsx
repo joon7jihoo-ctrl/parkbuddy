@@ -50,6 +50,13 @@ function getActionLabel(action?: string | null) {
       return '라운드 조 편성 저장';
     case 'round.scores.update':
       return '라운드 스코어 저장';
+    case 'round_soft_delete':
+    case 'round.soft_delete':
+    case 'round.delete':
+      return '라운드 삭제 보관';
+    case 'round_restore':
+    case 'round.restore':
+      return '라운드 복구';
     default:
       return action ?? '알 수 없는 작업';
   }
@@ -127,6 +134,11 @@ function getValueLabel(key: string, value: unknown) {
     }
   }
 
+
+  if (key === 'deleted_at' || key === 'restored_at' || key === 'created_at' || key === 'updated_at') {
+    return formatDateTime(String(value));
+  }
+
   if (typeof value === 'object') {
     return JSON.stringify(value);
   }
@@ -140,6 +152,8 @@ function getKeyLabel(key: string) {
       return '회원 ID';
     case 'round_id':
       return '라운드 ID';
+    case 'round_title':
+      return '라운드명';
     case 'source_round_id':
       return '원본 라운드 ID';
     case 'new_round_id':
@@ -160,6 +174,12 @@ function getKeyLabel(key: string) {
       return '이전 상태';
     case 'new_status':
       return '변경 상태';
+    case 'deleted_at':
+      return '삭제 보관 시각';
+    case 'restored_at':
+      return '복구 시각';
+    case 'deleted_by_member_id':
+      return '삭제 처리자 ID';
     case 'game_type':
     case 'play_mode':
       return '경기 형태';

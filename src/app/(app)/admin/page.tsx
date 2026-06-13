@@ -60,6 +60,13 @@ function getActionLabel(action: string) {
       return '라운드 스코어 변경';
     case 'round.status.update':
       return '라운드 상태 변경';
+    case 'round_soft_delete':
+    case 'round.soft_delete':
+    case 'round.delete':
+      return '라운드 삭제 보관';
+    case 'round_restore':
+    case 'round.restore':
+      return '라운드 복구';
     default:
       return action;
   }
