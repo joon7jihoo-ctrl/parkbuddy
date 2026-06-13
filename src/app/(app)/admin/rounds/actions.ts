@@ -154,3 +154,35 @@ export async function duplicateRoundAction(formData: FormData) {
   revalidatePath('/admin/rounds');
   redirect('/admin/rounds/' + newRoundId + '/participants');
 }
+
+// PARKBUDDY_ROUND_SOFT_DELETE_ACTIONS_START
+export async function adminSoftDeleteRoundAction(formData: FormData) {
+  "use server";
+  const roundId = String(formData.get("roundId") ?? "").trim();
+  if (!roundId) {
+    throw new Error("roundId is required.");
+  }
+  const { supabase } = await requireAdmin();
+  const { error } = await supabase.rpc("admin_soft_delete_round", { p_round_id: roundId });
+  if (error) {
+    throw new Error(error.message);
+  }
+  revalidatePath("/admin/rounds");
+  revalidatePath(`/admin/rounds/${roundId}`);
+}
+
+export async function adminRestoreRoundAction(formData: FormData) {
+  "use server";
+  const roundId = String(formData.get("roundId") ?? "").trim();
+  if (!roundId) {
+    throw new Error("roundId is required.");
+  }
+  const { supabase } = await requireAdmin();
+  const { error } = await supabase.rpc("admin_restore_round", { p_round_id: roundId });
+  if (error) {
+    throw new Error(error.message);
+  }
+  revalidatePath("/admin/rounds");
+  revalidatePath(`/admin/rounds/${roundId}`);
+}
+// PARKBUDDY_ROUND_SOFT_DELETE_ACTIONS_END
