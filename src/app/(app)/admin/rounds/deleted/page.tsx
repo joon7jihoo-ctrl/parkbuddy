@@ -1,8 +1,7 @@
 import Link from 'next/link';
 import { ConfirmSubmitButton } from '@/components/confirm-submit-button';
 import { requireAdmin } from '@/lib/auth/require-member';
-import { updateRoundStatusAction, duplicateRoundAction } from './actions';
-import { adminSoftDeleteRoundAction } from "./actions";
+import { updateRoundStatusAction, duplicateRoundAction, adminRestoreRoundAction } from "../actions";
 
 type AdminRoundsPageProps = {
   searchParams: Promise<{
@@ -153,7 +152,7 @@ export default async function AdminRoundsPage({
     `,
     )
     .eq('club_id', member.club_id)
-    .is("deleted_at", null)
+    .not("deleted_at", "is", null)
     .order('play_date', { ascending: false })
     .order('created_at', { ascending: false });
 
@@ -182,13 +181,19 @@ export default async function AdminRoundsPage({
 
   return (
     <main className="mx-auto max-w-5xl space-y-5 px-4 py-6">
+
+      <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+        <p className="font-semibold">삭제된 라운드 복구 관리</p>
+        <p className="mt-1">이 화면은 soft-delete 처리된 라운드만 보여줍니다. 복구하면 일반 라운드 목록에 다시 표시됩니다.</p>
+      </div>
+
       <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm font-semibold text-emerald-600">
             라운드 관리
           </p>
           <h1 className="mt-1 text-2xl font-bold text-slate-900">
-            라운드 목록
+            복구된 라운드
           </h1>
           <p className="mt-1 text-sm text-slate-500">
             라운드 일정, 참가자, 조 편성, 스코어, 상태를 관리합니다.
@@ -216,14 +221,6 @@ export default async function AdminRoundsPage({
           >
             라운드 생성
           </Link>
-
-        <Link
-          href="/admin/rounds/deleted"
-          className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
-        >
-          삭제된 라운드 보기
-        </Link>
-
         </div>
       </header>
 
@@ -423,16 +420,16 @@ export default async function AdminRoundsPage({
     
       <section className="rounded-2xl border border-red-100 bg-red-50/60 p-4">
         <div className="space-y-1">
-          <h2 className="text-base font-semibold text-red-900">라운드 안전 관리</h2>
+          <h2 className="text-base font-semibold text-red-900">복구된 라운드 복구 관리</h2>
           <p className="text-sm text-red-700">
-            삭제는 실제 삭제가 아니라 복구 가능한 보관 처리입니다. 삭제된 라운드는 기본 목록에서 숨겨집니다.
+            복구는 실제 복구가 아니라 복구 가능한 보관 처리입니다. 복구된 라운드는 기본 목록에서 숨겨집니다.
           </p>
         </div>
         <div className="mt-4 space-y-2">
           {rounds.map((round) => (
             <form
               key={`soft-delete-${round.id}`}
-              action={adminSoftDeleteRoundAction}
+              action={adminRestoreRoundAction}
               className="flex flex-col gap-2 rounded-xl border border-red-100 bg-white p-3 sm:flex-row sm:items-center sm:justify-between"
             >
               <input type="hidden" name="roundId" value={round.id} />
@@ -444,7 +441,7 @@ export default async function AdminRoundsPage({
                 type="submit"
                 className="rounded-lg border border-red-200 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50"
               >
-                삭제
+                복구
               </button>
             </form>
           ))}
