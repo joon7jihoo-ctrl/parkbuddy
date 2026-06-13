@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireAdmin } from '@/lib/auth/require-member';
 import { updateRoundParticipantsAction } from './actions';
-import { MemberSearchFilter } from '@/components/admin/member-search-filter';
 
 type RoundParticipantsPageProps = {
   params: Promise<{
@@ -145,7 +144,6 @@ export default async function RoundParticipantsPage({
 
   return (
     <main className="mx-auto max-w-4xl space-y-5 px-4 py-6">
-      <MemberSearchFilter />
       <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm font-semibold text-emerald-600">
