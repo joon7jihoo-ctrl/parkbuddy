@@ -1,0 +1,79 @@
+'use server';
+
+import { redirect } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
+import { requireAdmin } from '@/lib/auth/require-member';
+
+function getRoundParticipantErrorCode(message?: string) {
+  if (!message) {
+    return 'unknown';
+  }
+
+  if (message.includes('AUTH_REQUIRED')) {
+    return 'auth_required';
+  }
+
+  if (message.includes('ADMIN_REQUIRED')) {
+    return 'admin_required';
+  }
+
+  if (message.includes('ROUND_NOT_FOUND')) {
+    return 'round_not_found';
+  }
+
+  if (message.includes('INVALID_PARTICIPANT')) {
+    return 'invalid_participant';
+  }
+
+  if (message.includes('Could not find the function')) {
+    return 'rpc_missing';
+  }
+
+  if (message.includes('permission denied')) {
+    return 'permission_denied';
+  }
+
+  return 'unknown';
+}
+
+export async function updateRoundParticipantsAction(formData: FormData) {
+  const { supabase } = await requireAdmin();
+
+  const roundId = String(formData.get('roundId') ?? '').trim();
+  const memberIds = formData
+    .getAll('memberIds')
+    .map((value) => String(value).trim())
+    .filter(Boolean);
+
+  if (!roundId) {
+    redirect('/admin/rounds?error=round_not_found');
+  }
+
+  const { error } = await supabase.rpc('admin_set_round_participants', {
+    p_round_id: roundId,
+    p_member_ids: memberIds,
+  });
+
+  if (error) {
+    console.error('admin_set_round_participants failed', {
+      roundId,
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      code: error.code,
+    });
+
+    redirect(
+      `/admin/rounds/${roundId}/participants?error=${getRoundParticipantErrorCode(
+        error.message,
+      )}`,
+    );
+  }
+
+  revalidatePath('/admin');
+  revalidatePath('/admin/rounds');
+  revalidatePath(`/admin/rounds/${roundId}/participants`);
+  revalidatePath('/admin/logs');
+
+  redirect(`/admin/rounds/${roundId}/participants?updated=1`);
+}

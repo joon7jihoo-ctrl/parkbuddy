@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
+.safe-bottom {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+
+/* ParkBuddy print page: hide app bottom navigation */
+body:has([data-parkbuddy-print-page="true"]) nav,
+body:has([data-parkbuddy-print-page="true"]) [data-bottom-nav],
+body:has([data-parkbuddy-print-page="true"]) .fixed.bottom-0,
+body:has([data-parkbuddy-print-page="true"]) .fixed.inset-x-0.bottom-0 {
+  display: none !important;
+}
+
+body:has([data-parkbuddy-print-page="true"]) {
+  padding-bottom: 0 !important;
+}
+
+@media print {
+  nav,
+  [data-bottom-nav],
+  .fixed.bottom-0,
+  .fixed.inset-x-0.bottom-0 {
+    display: none !important;
+  }
+
+  body {
+    padding-bottom: 0 !important;
+  }
+}

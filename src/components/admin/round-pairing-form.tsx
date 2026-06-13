@@ -1,0 +1,331 @@
+'use client';
+
+import { useMemo, useState } from 'react';
+
+type PlayMode = 'individual' | 'foursome' | 'fourball' | 'scramble' | 'team_match';
+type ScoringType = 'stroke' | 'new_peoria' | 'match_play' | 'stableford';
+
+type Participant = {
+  id: string;
+  name: string;
+  handicap: number | null;
+};
+
+type PairingFormProps = {
+  roundId: string;
+  participants: Participant[];
+  defaultPlayMode?: PlayMode;
+  defaultScoringType?: ScoringType;
+  defaultAssignments?: Record<string, number>;
+  action: (formData: FormData) => void | Promise<void>;
+};
+
+const PLAY_MODE_OPTIONS: Array<{
+  value: PlayMode;
+  label: string;
+  description: string;
+}> = [
+  {
+    value: 'individual',
+    label: '개인전',
+    description: '각자 자기 공으로 플레이합니다.',
+  },
+  {
+    value: 'foursome',
+    label: '포섬',
+    description: '2인 1조가 공 1개를 번갈아 칩니다.',
+  },
+  {
+    value: 'fourball',
+    label: '포볼',
+    description: '2인 1조에서 더 좋은 스코어를 사용합니다.',
+  },
+  {
+    value: 'scramble',
+    label: '스크램블',
+    description: '조별로 가장 좋은 공을 선택해 이어서 플레이합니다.',
+  },
+  {
+    value: 'team_match',
+    label: '청백전',
+    description: '전체 인원을 두 팀으로 나누어 승점을 합산합니다.',
+  },
+];
+
+const SCORING_OPTIONS_BY_PLAY_MODE: Record<
+  PlayMode,
+  Array<{ value: ScoringType; label: string }>
+> = {
+  individual: [
+    { value: 'stroke', label: '스트로크 플레이' },
+    { value: 'new_peoria', label: '신페리오' },
+    { value: 'match_play', label: '매치 플레이' },
+    { value: 'stableford', label: '스테이블포드' },
+  ],
+  foursome: [
+    { value: 'stroke', label: '스트로크 플레이' },
+    { value: 'match_play', label: '매치 플레이' },
+  ],
+  fourball: [
+    { value: 'stroke', label: '스트로크 플레이' },
+    { value: 'match_play', label: '매치 플레이' },
+    { value: 'stableford', label: '스테이블포드' },
+  ],
+  scramble: [
+    { value: 'stroke', label: '스트로크 플레이' },
+    { value: 'match_play', label: '매치 플레이' },
+  ],
+  team_match: [
+    { value: 'stroke', label: '스트로크 플레이' },
+    { value: 'new_peoria', label: '신페리오' },
+    { value: 'match_play', label: '매치 플레이' },
+  ],
+};
+
+function getRecommendedGroupSizes(totalParticipants: number) {
+  if (totalParticipants < 3 || totalParticipants === 5) {
+    return [];
+  }
+
+  const sizes: number[] = [];
+  let remaining = totalParticipants;
+
+  while (remaining > 0) {
+    if (remaining === 6) {
+      sizes.push(3, 3);
+      remaining = 0;
+    } else if (remaining === 7) {
+      sizes.push(4, 3);
+      remaining = 0;
+    } else if (remaining === 3 || remaining === 4) {
+      sizes.push(remaining);
+      remaining = 0;
+    } else {
+      sizes.push(4);
+      remaining -= 4;
+    }
+  }
+
+  return sizes;
+}
+
+function getRecommendation(totalParticipants: number) {
+  if (totalParticipants < 3) {
+    return '참가자가 최소 3명 이상이어야 조 편성이 가능합니다.';
+  }
+
+  if (totalParticipants === 5) {
+    return '5명은 3명 이상 4명 이하 조로 나누기 어려워 참가자 추가 또는 제외가 필요합니다.';
+  }
+
+  if (totalParticipants >= 8 && totalParticipants % 2 === 0) {
+    return '청백전 + 매치 플레이를 추천합니다. 팀 대항 승점 방식이라 가장 긴장감 있게 즐길 수 있습니다.';
+  }
+
+  if (totalParticipants >= 6) {
+    return '스크램블 스트로크를 추천합니다. 실력 차이가 있어도 친선 라운드 분위기를 만들기 좋습니다.';
+  }
+
+  return '개인전 신페리오를 추천합니다. 소규모 라운드에서 핸디캡 보정으로 재미를 살릴 수 있습니다.';
+}
+
+function buildInitialAssignments(
+  participants: Participant[],
+  groupSizes: number[],
+  defaultAssignments?: Record<string, number>,
+) {
+  if (defaultAssignments && Object.keys(defaultAssignments).length > 0) {
+    return participants.reduce<Record<string, number>>((acc, participant) => {
+      acc[participant.id] = defaultAssignments[participant.id] ?? 0;
+      return acc;
+    }, {});
+  }
+
+  const groupMemberCounts = groupSizes.map(() => 0);
+
+  return participants.reduce<Record<string, number>>((acc, participant) => {
+    const targetGroupIndex = groupMemberCounts.findIndex((count, groupIndex) => {
+      const groupSize = groupSizes[groupIndex] ?? 0;
+      return count < groupSize;
+    });
+
+    const safeGroupIndex = targetGroupIndex >= 0 ? targetGroupIndex : 0;
+    groupMemberCounts[safeGroupIndex] = (groupMemberCounts[safeGroupIndex] ?? 0) + 1;
+    acc[participant.id] = safeGroupIndex;
+
+    return acc;
+  }, {});
+}
+
+export function RoundPairingForm({
+  roundId,
+  participants,
+  defaultPlayMode = 'team_match',
+  defaultScoringType = 'match_play',
+  defaultAssignments,
+  action,
+}: PairingFormProps) {
+  const groupSizes = useMemo(
+    () => getRecommendedGroupSizes(participants.length),
+    [participants.length],
+  );
+
+  const [playMode, setPlayMode] = useState<PlayMode>(defaultPlayMode);
+  const [scoringType, setScoringType] = useState<ScoringType>(
+    defaultScoringType,
+  );
+  const [assignments, setAssignments] = useState<Record<string, number>>(() =>
+    buildInitialAssignments(participants, groupSizes, defaultAssignments),
+  );
+
+  const scoringOptions = SCORING_OPTIONS_BY_PLAY_MODE[playMode];
+
+  function handlePlayModeChange(nextPlayMode: PlayMode) {
+    const nextOptions = SCORING_OPTIONS_BY_PLAY_MODE[nextPlayMode];
+    const firstOption = nextOptions[0];
+
+    setPlayMode(nextPlayMode);
+
+    if (!nextOptions.some((option) => option.value === scoringType) && firstOption) {
+      setScoringType(firstOption.value);
+    }
+  }
+
+  const groupIndexes = groupSizes.map((_, index) => index);
+  const recommendation = getRecommendation(participants.length);
+  const canSave = groupSizes.length > 0;
+
+  return (
+    <form action={action} className="space-y-5">
+      <input type="hidden" name="roundId" value={roundId} />
+      <input type="hidden" name="playMode" value={playMode} />
+      <input type="hidden" name="scoringType" value={scoringType} />
+      <input
+        type="hidden"
+        name="assignments"
+        value={JSON.stringify(assignments)}
+      />
+
+      <section className="rounded-3xl bg-white p-5 shadow-sm">
+        <h2 className="font-bold text-slate-900">추천 조합</h2>
+        <p className="mt-2 text-sm leading-6 text-slate-600">
+          참가자 {participants.length}명 기준: {recommendation}
+        </p>
+
+        {groupSizes.length > 0 && (
+          <p className="mt-2 text-sm text-slate-500">
+            추천 조 편성: {groupSizes.map((size) => `${size}명`).join(' / ')}
+          </p>
+        )}
+      </section>
+
+      <section className="rounded-3xl bg-white p-5 shadow-sm">
+        <h2 className="font-bold text-slate-900">경기 방식</h2>
+
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <label className="block">
+            <span className="text-sm font-medium text-slate-700">
+              경기 형태
+            </span>
+            <select
+              value={playMode}
+              onChange={(event) =>
+                handlePlayModeChange(event.target.value as PlayMode)
+              }
+              className="mt-2 h-12 w-full rounded-2xl border border-slate-200 px-4 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+            >
+              {PLAY_MODE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="block">
+            <span className="text-sm font-medium text-slate-700">
+              점수 계산 방식
+            </span>
+            <select
+              value={scoringType}
+              onChange={(event) =>
+                setScoringType(event.target.value as ScoringType)
+              }
+              className="mt-2 h-12 w-full rounded-2xl border border-slate-200 px-4 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+            >
+              {scoringOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        <p className="mt-3 text-sm text-slate-500">
+          {
+            PLAY_MODE_OPTIONS.find((option) => option.value === playMode)
+              ?.description
+          }
+        </p>
+      </section>
+
+      <section className="rounded-3xl bg-white p-5 shadow-sm">
+        <h2 className="font-bold text-slate-900">수동 조 편성</h2>
+        <p className="mt-1 text-sm text-slate-500">
+          각 참가자의 조를 선택하세요. 각 조는 최소 3명, 최대 4명이어야 합니다.
+        </p>
+
+        {groupIndexes.length ? (
+          <div className="mt-4 space-y-3">
+            {participants.map((participant) => (
+              <label
+                key={participant.id}
+                className="grid gap-3 rounded-2xl border border-slate-100 p-4 sm:grid-cols-[1fr_180px]"
+              >
+                <span>
+                  <span className="font-semibold text-slate-900">
+                    {participant.name}
+                  </span>
+                  <span className="ml-2 text-sm text-slate-500">
+                    핸디캡 {participant.handicap ?? 0}
+                  </span>
+                </span>
+
+                <select
+                  value={assignments[participant.id] ?? 0}
+                  onChange={(event) => {
+                    const nextGroupIndex = Number(event.target.value);
+                    setAssignments((current) => ({
+                      ...current,
+                      [participant.id]: nextGroupIndex,
+                    }));
+                  }}
+                  className="h-11 rounded-2xl border border-slate-200 px-3 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                >
+                  {groupIndexes.map((groupIndex) => (
+                    <option key={groupIndex} value={groupIndex}>
+                      {groupIndex + 1}조
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700">
+            현재 참가 인원으로는 조 편성이 어렵습니다. 참가자를 조정해 주세요.
+          </div>
+        )}
+      </section>
+
+      <button
+        type="submit"
+        disabled={!canSave}
+        className="h-12 w-full rounded-2xl bg-emerald-600 px-4 font-bold text-white disabled:cursor-not-allowed disabled:bg-slate-300"
+      >
+        조 편성 저장
+      </button>
+    </form>
+  );
+}

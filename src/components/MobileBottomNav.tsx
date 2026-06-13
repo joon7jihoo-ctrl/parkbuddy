@@ -1,0 +1,45 @@
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { CalendarDays, Home, MessageSquareText, Trophy, UserRound, UsersRound } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+const navItems = [
+  { href: '/', label: '홈', icon: Home },
+  { href: '/members', label: '회원', icon: UsersRound },
+  { href: '/schedule', label: '일정', icon: CalendarDays },
+  { href: '/scores', label: '스코어', icon: Trophy },
+  { href: '/board', label: '게시판', icon: MessageSquareText },
+  { href: '/mypage', label: '내정보', icon: UserRound },
+];
+
+export function MobileBottomNav() {
+  const pathname = usePathname();
+
+  return (
+    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white/95 backdrop-blur md:hidden safe-bottom">
+      <div className="grid grid-cols-6">
+        {navItems.map((item) => {
+          const active = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
+          const Icon = item.icon;
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                'flex h-16 flex-col items-center justify-center gap-1 text-[11px]',
+                active ? 'font-semibold text-emerald-600' : 'text-slate-500'
+              )}
+              aria-current={active ? 'page' : undefined}
+            >
+              <Icon size={20} aria-hidden />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}

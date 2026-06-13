@@ -1,0 +1,52 @@
+{
+  "name": "parkbuddy-secure",
+  "version": "0.10.0",
+  "private": true,
+  "description": "ParkBuddy - secure responsive park golf club management web app",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "quality": "npm run verify",
+    "security:smoke": "npm run security:scan",
+    "security:scan": "node scripts/security-smoke-test.mjs",
+    "verify": "npm run security:scan && npm run lint && npm run typecheck",
+    "audit:prod": "npm audit --omit=dev --audit-level=high",
+    "test": "npm run verify"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.12.0",
+    "@supabase/supabase-js": "^2.108.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.17.0",
+    "next": "^16.2.9",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "recharts": "^3.8.1",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.3",
+    "@types/node": "^20.17.10",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9.39.1",
+    "eslint-config-next": "^16.2.9",
+    "postcss": "^8.5.10",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=20.11.0"
+  },
+  "overrides": {
+    "postcss": "^8.5.10"
+  },
+  "allowScripts": {
+    "sharp@0.34.5": true,
+    "unrs-resolver@1.12.2": true
+  }
+}
