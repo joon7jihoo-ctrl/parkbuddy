@@ -422,7 +422,12 @@ export default async function AdminRoundsPage({
       </section>
     
       <section className="rounded-2xl border border-red-100 bg-red-50/60 p-4">
-
+        <div className="space-y-1">
+          <h2 className="text-base font-semibold text-red-900">라운드 안전 관리</h2>
+          <p className="text-sm text-red-700">
+            삭제는 실제 삭제가 아니라 복구 가능한 보관 처리입니다. 삭제된 라운드는 기본 목록에서 숨겨집니다.
+          </p>
+        </div>
         <div className="mt-4 space-y-2">
           {rounds.map((round) => (
             <form
