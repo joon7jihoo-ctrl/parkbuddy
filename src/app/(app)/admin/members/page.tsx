@@ -200,27 +200,26 @@ export default async function AdminMembersPage({ searchParams }: AdminMembersPag
                     </dl>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 lg:w-96 lg:self-start">
+                  <div className="grid grid-cols-2 gap-2 lg:w-80 lg:self-start">
                     {isInactive ? (
-                      <form action={restoreMemberAction} className="col-span-3">
+                      <form action={restoreMemberAction} className="col-span-2">
                         <input type="hidden" name="memberId" value={member.id} />
                         <ConfirmSubmitButton confirmMessage={member.name + ' 회원을 복구할까요?'} className="w-full rounded-2xl bg-emerald-50 px-5 py-3 text-sm font-semibold text-emerald-700 disabled:cursor-not-allowed disabled:opacity-60">복구</ConfirmSubmitButton>
                       </form>
                     ) : (
-                      <>
-                        <Link href={'/admin/members/' + member.id + '/edit'} className="rounded-2xl bg-slate-100 px-3 py-2 text-center text-sm font-semibold text-slate-700">수정</Link>
+                      <>
                         {!isLinked ? (
                           <form action={reissueClaimCodeAction}>
                             <input type="hidden" name="memberId" value={member.id} />
                             <button type="submit" className="h-full w-full rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white">코드 재발급</button>
                           </form>
-                        ) : <span aria-hidden />}
+                        ) : null}
                         {!isCurrentMember ? (
                           <form action={deactivateMemberAction}>
                             <input type="hidden" name="memberId" value={member.id} />
                             <ConfirmSubmitButton confirmMessage={member.name + ' 회원을 비활성화할까요?'} className="w-full rounded-2xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 disabled:cursor-not-allowed disabled:opacity-60">비활성화</ConfirmSubmitButton>
                           </form>
-                        ) : <span aria-hidden />}
+                        ) : null}
                       </>
                     )}
                   </div>

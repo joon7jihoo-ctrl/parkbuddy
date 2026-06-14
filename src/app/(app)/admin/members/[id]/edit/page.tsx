@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireAdmin } from '@/lib/auth/require-member';
+import { formatKoreanPhoneNumber } from '@/lib/korean-search';
 import { updateMemberAction } from '../../actions';
 
 type EditMemberPageProps = {
@@ -83,7 +84,7 @@ export default async function EditMemberPage({
 
   return (
     <main className="mx-auto max-w-3xl space-y-4 px-3 py-4 pb-32 sm:px-4 lg:px-6">
-      <header className="flex items-start justify-between gap-3">
+      <header>
         <div>
           <p className="text-sm font-semibold text-emerald-600">운영진 관리</p>
           <h1 className="mt-1 text-2xl font-bold text-slate-900">회원 수정</h1>
@@ -91,13 +92,6 @@ export default async function EditMemberPage({
             {member.name} 회원의 연락처, 핸디캡, 역할을 수정합니다.
           </p>
         </div>
-
-        <Link
-          href="/admin/members"
-          className="shrink-0 rounded-2xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-700"
-        >
-          목록
-        </Link>
       </header>
 
       {errorMessage && (
@@ -132,7 +126,7 @@ export default async function EditMemberPage({
                 inputMode="tel"
                 autoComplete="tel"
                 required
-                defaultValue={member.phone ?? ''}
+                defaultValue={formatKoreanPhoneNumber(member.phone)}
                 className="mt-2 h-12 w-full rounded-2xl border border-slate-200 px-4 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
               />
             </label>
@@ -167,20 +161,20 @@ export default async function EditMemberPage({
           자기 자신의 운영진 권한 해제와 마지막 운영진 권한 해제는 보안상 차단됩니다.
         </section>
 
-        <div className="sticky bottom-24 z-20 grid gap-2 rounded-3xl border border-slate-200 bg-white/95 p-3 shadow-xl backdrop-blur sm:grid-cols-2 lg:static lg:shadow-none">
-          <Link
-            href="/admin/members"
-            className="flex h-12 items-center justify-center rounded-2xl bg-slate-100 px-4 font-bold text-slate-700"
-          >
-            취소
-          </Link>
-
+        <div className="sticky bottom-24 z-20 grid grid-cols-2 gap-2 rounded-3xl border border-slate-200 bg-white/95 p-3 shadow-xl backdrop-blur lg:static lg:shadow-none">
           <button
             type="submit"
             className="h-12 rounded-2xl bg-emerald-600 px-4 font-bold text-white active:scale-[0.99]"
           >
             수정 저장
           </button>
+
+          <Link
+            href="/admin/members"
+            className="flex h-12 items-center justify-center rounded-2xl bg-slate-100 px-4 font-bold text-slate-700"
+          >
+            취소
+          </Link>
         </div>
       </form>
     </main>
