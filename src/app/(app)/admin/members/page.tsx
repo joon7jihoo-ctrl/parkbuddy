@@ -161,7 +161,7 @@ export default async function AdminMembersPage({ searchParams }: AdminMembersPag
 
       <MemberFilterControls counts={counts} initialStatus={initialStatus} />
 
-      <section className="space-y-3">
+      <section className="space-y-3 pb-member-search-results-shell">
         {allMembers.length ? (
           allMembers.map((member) => {
             const isLinked = Boolean(member.user_id);

@@ -252,3 +252,29 @@ body:has([data-parkbuddy-print-page="true"]) {
   }
 }
 /* End ParkBuddy responsive sticky CTA */
+
+/* ParkBuddy member search layout stability */
+html {
+  scrollbar-gutter: stable;
+}
+
+@supports not (scrollbar-gutter: stable) {
+  html {
+    overflow-y: scroll;
+  }
+}
+
+.pb-member-search-results-shell {
+  min-height: clamp(30rem, 58dvh, 46rem);
+}
+
+.pb-member-search-empty-state {
+  min-height: clamp(14rem, 32dvh, 22rem);
+}
+
+@media (min-width: 768px) {
+  .pb-member-search-results-shell {
+    min-height: clamp(34rem, 52dvh, 48rem);
+  }
+}
+

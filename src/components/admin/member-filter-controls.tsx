@@ -82,7 +82,6 @@ export function MemberFilterControls({ counts, initialStatus = 'active' }: Membe
   function applyFilter(nextStatus: MemberStatusFilter, nextView: MemberViewFilter, nextQuery: string) {
     const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-member-card]'));
     const trimmedQuery = nextQuery.trim();
-    let nextVisibleCount = 0;
 
     for (const card of cards) {
       const cardStatus = card.dataset.memberStatus;
@@ -95,13 +94,7 @@ export function MemberFilterControls({ counts, initialStatus = 'active' }: Membe
       const visible = statusMatched && viewMatched && searchMatched;
 
       card.hidden = !visible;
-
-      if (visible) {
-        nextVisibleCount += 1;
-      }
     }
-
-    updateCount(nextVisibleCount);
   }
   function clearInput() {
     if (inputRef.current) {
@@ -203,7 +196,6 @@ export function MemberFilterControls({ counts, initialStatus = 'active' }: Membe
         </label>
         <div className="mt-2 flex items-center justify-between gap-3 text-xs text-slate-500">
           <p>{helperText}</p>
-          <p ref={countRef} className="shrink-0 font-semibold text-slate-600">표시 {activeCounts[view]}명</p>
         </div>
       </section>
     </>
