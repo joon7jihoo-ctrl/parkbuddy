@@ -218,6 +218,13 @@ export default async function RoundResultsPrintPage({ params }: PrintResultsPage
   );
   const enteredCount = rankedScores.filter((score) => score.hasScore).length;
   const missingCount = rankedScores.length - enteredCount;
+  const completionRate = rankedScores.length
+    ? Math.round((enteredCount / rankedScores.length) * 100)
+    : 0;
+  const leader = rankedScores.find((score) => score.hasScore) ?? null;
+  const podiumScores = rankedScores
+    .filter((score) => score.hasScore && typeof score.rank === 'number' && score.rank <= 3)
+    .slice(0, 3);
 
   return (
     <main className="mx-auto max-w-5xl bg-white px-6 py-8 text-slate-900 print:max-w-none print:px-0 print:py-0">
@@ -240,7 +247,7 @@ export default async function RoundResultsPrintPage({ params }: PrintResultsPage
           </p>
         </header>
 
-        <section className="mt-5 grid gap-3 sm:grid-cols-4">
+        <section className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div className="rounded-2xl bg-slate-50 p-4 print:border print:border-slate-200 print:bg-white">
             <p className="text-xs font-semibold text-slate-500">경기 형태</p>
             <p className="mt-1 font-bold">{getGameTypeLabel(typedRound.game_type)}</p>
@@ -259,9 +266,46 @@ export default async function RoundResultsPrintPage({ params }: PrintResultsPage
           </div>
         </section>
 
+        <section className="mt-5 grid gap-3 md:grid-cols-[minmax(0,1fr)_320px] print:grid-cols-[minmax(0,1fr)_260px]">
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 print:bg-white">
+            <p className="text-xs font-bold uppercase tracking-wide text-emerald-700">결과 요약</p>
+            <h2 className="mt-1 text-2xl font-black text-emerald-950">
+              1위 · {leader?.member?.name ?? '-'}
+            </h2>
+            <p className="mt-1 text-sm text-emerald-800">
+              {leader?.resultLabel ?? '-'} · 입력 완료율 {completionRate}%
+            </p>
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-white print:border print:border-slate-200">
+              <div className="h-full rounded-full bg-emerald-500 print:bg-slate-900" style={{ width: completionRate + '%' }} />
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 print:bg-white">
+            <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Top 3</p>
+            <div className="mt-3 space-y-2">
+              {podiumScores.length ? (
+                podiumScores.map((score) => (
+                  <div key={score.member_id} className="flex items-center justify-between gap-3 rounded-xl bg-white px-3 py-2 print:border print:border-slate-200">
+                    <span className="truncate text-sm font-bold text-slate-900">
+                      {score.rank}위 · {score.member?.name ?? '이름 없는 회원'}
+                    </span>
+                    <span className="shrink-0 text-sm font-black text-emerald-700 print:text-slate-900">
+                      {score.resultLabel}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <p className="rounded-xl bg-white px-3 py-2 text-sm text-slate-500 print:border print:border-slate-200">
+                  아직 순위가 없습니다.
+                </p>
+              )}
+            </div>
+          </div>
+        </section>
+
         {missingCount > 0 && (
           <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 print:bg-white">
-            스코어 미입력 회원은 순위에서 제외됩니다.
+            스코어 미입력 {missingCount}명은 순위에서 제외됩니다.
           </div>
         )}
 
