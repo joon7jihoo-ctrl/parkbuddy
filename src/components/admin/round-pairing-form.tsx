@@ -261,7 +261,7 @@ export function RoundPairingForm({
   const canSave = groupSizes.length > 0;
 
   return (
-    <form action={action} className="space-y-5">
+    <form action={action} className="space-y-5 pb-24 sm:pb-0">
       <input type="hidden" name="roundId" value={roundId} />
       <input type="hidden" name="playMode" value={playMode} />
       <input type="hidden" name="scoringType" value={scoringType} />
@@ -382,13 +382,15 @@ export function RoundPairingForm({
         )}
       </section>
 
-      <button
-        type="submit"
-        disabled={!canSave}
-        className="h-12 w-full rounded-2xl bg-emerald-600 px-4 font-bold text-white disabled:cursor-not-allowed disabled:bg-slate-300"
-      >
-        조 편성 저장
-      </button>
+      <div className="sticky bottom-24 z-20 rounded-3xl border border-white/70 bg-white/95 p-2 shadow-xl backdrop-blur sm:static sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-none">
+        <button
+          type="submit"
+          disabled={!canSave}
+          className="h-12 w-full rounded-2xl bg-emerald-600 px-4 font-bold text-white disabled:cursor-not-allowed disabled:bg-slate-300"
+        >
+          조 편성 저장 · 참가 {participants.length}명
+        </button>
+      </div>
     </form>
   );
 }

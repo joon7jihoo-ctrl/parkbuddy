@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireAdmin } from '@/lib/auth/require-member';
-import { DeletedRoundOperationBlocked } from '@/components/admin/deleted-round-operation-blocked';
 import { updateRoundParticipantsAction } from './actions';
 import { ParticipantSelectionEnhancer } from '@/components/admin/participant-selection-enhancer';
 
@@ -23,7 +22,6 @@ type Round = {
   play_date: string | null;
   start_time: string | null;
   status: string;
-  deleted_at: string | null;
 };
 
 type Member = {
@@ -92,8 +90,7 @@ export default async function RoundParticipantsPage({
       course_name,
       play_date,
       start_time,
-      status,
-      deleted_at
+      status
     `,
     )
     .eq('id', routeParams.id)
@@ -106,10 +103,6 @@ export default async function RoundParticipantsPage({
 
   if (!round) {
     notFound();
-  }
-
-  if (round.deleted_at) {
-    return <DeletedRoundOperationBlocked roundTitle={round.title} />;
   }
 
   const { data: members, error: membersError } = await supabase
@@ -205,7 +198,7 @@ export default async function RoundParticipantsPage({
         </section>
       )}
 
-      <form action={updateRoundParticipantsAction} className="space-y-4">
+      <form action={updateRoundParticipantsAction} className="space-y-4 pb-24 sm:pb-0">
         <input type="hidden" name="roundId" value={currentRound.id} />
 
         <section className="rounded-3xl bg-white p-4 shadow-sm sm:p-5">
@@ -217,12 +210,6 @@ export default async function RoundParticipantsPage({
               </p>
             </div>
 
-            <button
-              type="submit"
-              className="min-h-12 rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white"
-            >
-              참가자 저장
-            </button>
           </div>
 
           <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
@@ -267,6 +254,15 @@ export default async function RoundParticipantsPage({
             )}
           </div>
         </section>
+
+        <div className="sticky bottom-24 z-20 rounded-3xl border border-white/70 bg-white/95 p-2 shadow-xl backdrop-blur sm:static sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-none">
+          <button
+            type="submit"
+            className="h-12 w-full rounded-2xl bg-emerald-600 px-5 text-sm font-bold text-white"
+          >
+            참가자 저장 · 선택 {selectedCount}명
+          </button>
+        </div>
       </form>
     </main>
   );

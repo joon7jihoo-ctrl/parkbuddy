@@ -1,8 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireAdmin } from '@/lib/auth/require-member';
-import { DeletedRoundOperationBlocked } from '@/components/admin/deleted-round-operation-blocked';
-import { saveRoundScoresAction } from './actions';
+import { RoundScoreInputForm } from '@/components/admin/round-score-input-form';
 
 type ScoresPageProps = {
   params: Promise<{ id: string }>;
@@ -62,17 +61,13 @@ export default async function RoundScoresPage({ params, searchParams }: ScoresPa
 
   const { data: round, error: roundError } = await supabase
     .from('rounds')
-    .select('id, title, course_name, play_date, status, club_id, deleted_at')
+    .select('id, title, course_name, play_date, status, club_id')
     .eq('id', routeParams.id)
     .eq('club_id', member.club_id)
     .maybeSingle();
 
   if (roundError) throw new Error(roundError.message);
   if (!round) notFound();
-
-  if (round.deleted_at) {
-    return <DeletedRoundOperationBlocked roundTitle={round.title} />;
-  }
 
   const { data: participantRows, error: participantsError } = await supabase
     .from('round_participants')
@@ -96,6 +91,22 @@ export default async function RoundScoresPage({ params, searchParams }: ScoresPa
   const participants = (participantRows ?? []) as unknown as Participant[];
   const scores = (scoreRows ?? []) as RoundScore[];
   const scoreByMemberId = new Map(scores.map((score) => [score.member_id, score]));
+  const scoreFormParticipants = participants.map((participant) => {
+    const score = scoreByMemberId.get(participant.member_id);
+    return {
+      memberId: participant.member_id,
+      name: participant.member?.name ?? '이름 없는 회원',
+      handicap: participant.member?.handicap ?? 0,
+      strokes: score?.strokes ?? null,
+      stablefordPoints: score?.stableford_points ?? null,
+      memo: score?.memo ?? null,
+    };
+  });
+  const initialCompletedScoreCount = scoreFormParticipants.filter(
+    (participant) =>
+      typeof participant.strokes === 'number' ||
+      typeof participant.stablefordPoints === 'number',
+  ).length;
   const errorMessage = getErrorMessage(queryParams.error);
 
   return (
@@ -131,7 +142,7 @@ export default async function RoundScoresPage({ params, searchParams }: ScoresPa
         </div>
         <div className="rounded-2xl bg-emerald-50 px-2 py-2">
           <p className="text-[11px] font-medium text-emerald-700">입력</p>
-          <p className="mt-1 text-xs font-bold text-emerald-900">{scores.length}명</p>
+          <p className="mt-1 text-xs font-bold text-emerald-900">{initialCompletedScoreCount}명</p>
         </div>
       </section>
 
@@ -147,85 +158,9 @@ export default async function RoundScoresPage({ params, searchParams }: ScoresPa
         </section>
       )}
 
-      <form action={saveRoundScoresAction} className="space-y-4">
-        <input type="hidden" name="roundId" value={round.id} />
 
-        <section className="overflow-hidden rounded-3xl bg-white shadow-sm">
-          <div className="border-b border-slate-100 px-4 py-3 sm:px-5 sm:py-4">
-            <h2 className="font-bold text-slate-900">참가자 스코어 {participants.length}명</h2>
-            <p className="mt-1 text-sm text-slate-500">
-              우선 총 타수와 스테이블포드 포인트를 저장합니다. 신페리오/매치플레이 자동 계산은 다음 단계에서 확장합니다.
-            </p>
-          </div>
+      <RoundScoreInputForm roundId={round.id} participants={scoreFormParticipants} />
 
-          <div className="divide-y divide-slate-100">
-            {participants.length ? (
-              participants.map((participant) => {
-                const memberInfo = participant.member;
-                const score = scoreByMemberId.get(participant.member_id);
-
-                return (
-                  <article key={participant.member_id} className="grid grid-cols-2 gap-3 px-4 py-3 md:grid-cols-[minmax(140px,1fr)_130px_160px_minmax(160px,1fr)] md:items-end sm:px-5 sm:py-4">
-                    <input type="hidden" name="memberId" value={participant.member_id} />
-
-                    <div className="col-span-2 md:col-span-1">
-                      <p className="font-bold text-slate-900">{memberInfo?.name ?? '이름 없는 회원'}</p>
-                      <p className="mt-1 text-sm text-slate-500">핸디캡 {memberInfo?.handicap ?? 0}</p>
-                    </div>
-
-                    <label className="block">
-                      <span className="text-xs font-medium text-slate-500">총 타수</span>
-                      <input
-                        name={`strokes:${participant.member_id}`}
-                        type="number"
-                        min={1}
-                        max={200}
-                        defaultValue={score?.strokes ?? ''}
-                        className="mt-1 h-11 w-full rounded-2xl border border-slate-200 px-3 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-                      />
-                    </label>
-
-                    <label className="block">
-                      <span className="text-xs font-medium text-slate-500">스테이블포드 포인트</span>
-                      <input
-                        name={`stablefordPoints:${participant.member_id}`}
-                        type="number"
-                        min={-20}
-                        max={100}
-                        defaultValue={score?.stableford_points ?? ''}
-                        className="mt-1 h-11 w-full rounded-2xl border border-slate-200 px-3 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-                      />
-                    </label>
-
-                    <label className="block">
-                      <span className="text-xs font-medium text-slate-500">메모</span>
-                      <input
-                        name={`memo:${participant.member_id}`}
-                        type="text"
-                        defaultValue={score?.memo ?? ''}
-                        className="mt-1 h-11 w-full rounded-2xl border border-slate-200 px-3 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-                      />
-                    </label>
-                  </article>
-                );
-              })
-            ) : (
-              <div className="px-5 py-12 text-center">
-                <p className="text-sm font-semibold text-slate-700">아직 참가자가 없습니다.</p>
-                <p className="mt-1 text-sm text-slate-500">참가자를 먼저 선택한 뒤 스코어를 입력하세요.</p>
-              </div>
-            )}
-          </div>
-        </section>
-
-        <button
-          type="submit"
-          disabled={!participants.length}
-          className="sticky bottom-24 z-10 h-12 w-full rounded-2xl bg-emerald-600 px-4 font-bold text-white shadow-sm disabled:cursor-not-allowed disabled:bg-slate-300 sm:static"
-        >
-          스코어 저장
-        </button>
-      </form>
     </main>
   );
 }

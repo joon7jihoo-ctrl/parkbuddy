@@ -239,6 +239,12 @@ export default async function RoundResultsPage({ params }: ResultsPageProps) {
   );
 
   const leader = rankedScores.find((score) => score.rank === 1);
+  const completedScoreCount = rankedScores.filter((score) => score.hasScore).length;
+  const missingScoreCount = rankedScores.filter((score) => !score.hasScore).length;
+  const completionRate = rankedScores.length
+    ? Math.round((completedScoreCount / rankedScores.length) * 100)
+    : 0;
+  const podiumScores = rankedScores.filter((score) => score.rank > 0 && score.rank <= 3);
 
   return (
     <main className="mx-auto max-w-7xl space-y-4 px-3 py-4 sm:px-4 sm:py-5">
@@ -277,6 +283,48 @@ export default async function RoundResultsPage({ params }: ResultsPageProps) {
           </Link>
         </div>
       </header>
+
+
+      <section data-result-summary-ux className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wide text-emerald-700">결과 요약</p>
+              <h2 className="mt-1 text-xl font-black text-emerald-950">
+                현재 1위 · {leader?.member?.name ?? '-'}
+              </h2>
+              <p className="mt-1 text-sm leading-6 text-emerald-800">
+                입력 완료 {completedScoreCount}명 · 미입력 {missingScoreCount}명 · 완료율 {completionRate}%
+              </p>
+            </div>
+            <div className="rounded-2xl bg-white px-3 py-2 text-center text-sm font-black text-emerald-800 shadow-sm">
+              {leader?.displayScore ?? '-'}
+            </div>
+          </div>
+          <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/80">
+            <div className="h-full rounded-full bg-emerald-500" style={{ width: completionRate + '%' }} />
+          </div>
+        </div>
+
+        <div className="rounded-3xl bg-white p-4 shadow-sm">
+          <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Top 3</p>
+          <div className="mt-3 grid gap-2">
+            {podiumScores.length ? (
+              podiumScores.map((score) => (
+                <div key={score.member_id} className="flex items-center justify-between rounded-2xl bg-slate-50 px-3 py-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold text-slate-900">{score.rank}위 · {score.member?.name ?? '이름 없는 회원'}</p>
+                    <p className="text-xs text-slate-500">총 타수 {score.grossScore}</p>
+                  </div>
+                  <p className="shrink-0 text-sm font-black text-emerald-700">{score.displayScore}</p>
+                </div>
+              ))
+            ) : (
+              <p className="rounded-2xl bg-slate-50 px-3 py-3 text-sm text-slate-500">아직 순위가 없습니다.</p>
+            )}
+          </div>
+        </div>
+      </section>
 
       <section className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
         <div className="rounded-3xl bg-white p-4 shadow-sm">
@@ -363,7 +411,7 @@ export default async function RoundResultsPage({ params }: ResultsPageProps) {
             rankedScores.map((score) => (
               <article
                 key={score.member_id}
-                className="grid grid-cols-[auto_minmax(0,1fr)] gap-3 px-4 py-3 sm:grid-cols-[80px_minmax(0,1fr)_220px] sm:px-5 sm:py-4"
+                className={`${score.hasScore ? 'bg-white' : 'bg-amber-50/50'} grid grid-cols-[auto_minmax(0,1fr)] gap-3 px-4 py-3 sm:grid-cols-[80px_minmax(0,1fr)_220px] sm:px-5 sm:py-4`}
               >
                 <div className="flex items-center">
                   <span className="rounded-2xl bg-slate-100 px-3 py-2 text-sm font-bold text-slate-700">
