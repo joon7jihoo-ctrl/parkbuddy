@@ -14,7 +14,7 @@ export async function createPost(formData: FormData) {
   if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? '입력값이 올바르지 않습니다.');
   if (parsed.data.post_type === 'notice' && member.role !== 'admin') throw new Error('공지사항은 운영진만 작성할 수 있습니다.');
 
-  const imageResult = validateImageFile(formData.get('image') as File | null);
+  const imageResult = await validateImageFile(formData.get('image') as File | null);
   if (!imageResult.ok) throw new Error(imageResult.message);
 
   const { data: post, error } = await supabase
@@ -26,6 +26,7 @@ export async function createPost(formData: FormData) {
       title: parsed.data.title,
       content: parsed.data.content,
       is_pinned: parsed.data.post_type === 'notice',
+      is_private: parsed.data.is_private,
     })
     .select('id')
     .single();

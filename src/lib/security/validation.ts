@@ -63,8 +63,16 @@ export const scoreSchema = z.object({
 
 export const postFormSchema = z.object({
   title: safeText(1, 100),
-  content: z.string().trim().min(1).max(5000),
+  content: z
+    .string()
+    .trim()
+    .min(1, '필수 입력값입니다.')
+    .max(5000, '최대 5000자까지 입력할 수 있습니다.')
+    .refine((value) => !/[<>]/.test(value), '꺾쇠 괄호는 사용할 수 없습니다.'),
   post_type: z.enum(['notice', 'free']).default('free'),
+  is_private: z
+    .preprocess((value) => value === 'on' || value === 'true' || value === true, z.boolean())
+    .default(false),
 });
 
 export const profileFormSchema = z.object({
