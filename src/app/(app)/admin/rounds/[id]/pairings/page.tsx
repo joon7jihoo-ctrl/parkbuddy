@@ -172,13 +172,13 @@ export default async function PairingsPage({
   const errorMessage = getErrorMessage(queryParams.error);
 
   return (
-    <main className="mx-auto max-w-5xl space-y-5 px-4 py-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <main className="mx-auto max-w-7xl space-y-4 px-3 py-4 sm:px-4 sm:py-5">
+      <header className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
         <div>
           <p className="text-sm font-semibold text-emerald-600">
             조 편성
           </p>
-          <h1 className="mt-1 text-2xl font-bold text-slate-900">
+          <h1 className="mt-1 text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
             {typedRound.title ?? '라운드'}
           </h1>
           <p className="mt-1 text-sm text-slate-500">
@@ -186,30 +186,46 @@ export default async function PairingsPage({
           </p>
         </div>
 
-        <div className="flex gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap lg:justify-end">
           <Link
             href={`/admin/rounds/${typedRound.id}/participants`}
-            className="rounded-2xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700"
+            className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-slate-100 px-4 py-2 text-center text-sm font-semibold text-slate-700"
           >
             참가자 선택
           </Link>
           <Link
             href="/admin/rounds"
-            className="rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
+            className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-slate-900 px-4 py-2 text-center text-sm font-semibold text-white"
           >
             라운드 목록
           </Link>
         </div>
       </header>
 
+
+      <section data-round-detail-mobile-summary className="grid grid-cols-3 gap-2 rounded-3xl bg-white p-3 text-center shadow-sm sm:hidden">
+        <div className="rounded-2xl bg-slate-50 px-2 py-2">
+          <p className="text-[11px] font-medium text-slate-500">일자</p>
+          <p className="mt-1 truncate text-xs font-bold text-slate-900">{formatDate(typedRound.play_date)}</p>
+        </div>
+        <div className="rounded-2xl bg-slate-50 px-2 py-2">
+          <p className="text-[11px] font-medium text-slate-500">경기</p>
+          <p className="mt-1 truncate text-xs font-bold text-slate-900">{typedRound.game_type ?? '-'}</p>
+        </div>
+        <div className="rounded-2xl bg-emerald-50 px-2 py-2">
+          <p className="text-[11px] font-medium text-emerald-700">참가</p>
+          <p className="mt-1 text-xs font-bold text-emerald-900">{participants.length}명</p>
+        </div>
+      </section>
+
       {queryParams.saved && (
-        <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5 text-sm font-semibold text-emerald-700">
+        <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-700">
           조 편성이 저장되었습니다.
         </section>
       )}
 
       {errorMessage && (
-        <section className="rounded-3xl border border-red-200 bg-red-50 p-5 text-sm leading-6 text-red-700">
+        <section className="rounded-3xl border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700">
           {errorMessage}
         </section>
       )}
@@ -224,7 +240,7 @@ export default async function PairingsPage({
           action={saveRoundPairingsAction}
         />
       ) : (
-        <section className="rounded-3xl bg-white p-8 text-center shadow-sm">
+        <section className="rounded-3xl bg-white p-5 text-center shadow-sm sm:p-8">
           <p className="font-semibold text-slate-900">
             아직 참가자가 없습니다.
           </p>

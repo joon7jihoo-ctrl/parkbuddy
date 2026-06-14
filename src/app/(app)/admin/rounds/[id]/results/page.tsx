@@ -241,13 +241,13 @@ export default async function RoundResultsPage({ params }: ResultsPageProps) {
   const leader = rankedScores.find((score) => score.rank === 1);
 
   return (
-    <main className="mx-auto max-w-5xl space-y-5 px-4 py-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <main className="mx-auto max-w-7xl space-y-4 px-3 py-4 sm:px-4 sm:py-5">
+      <header className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
         <div>
           <p className="text-sm font-semibold text-emerald-600">
             스코어 결과
           </p>
-          <h1 className="mt-1 text-2xl font-bold text-slate-900">
+          <h1 className="mt-1 text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
             {typedRound.title ?? '라운드 결과'}
           </h1>
           <p className="mt-1 text-sm text-slate-500">
@@ -255,68 +255,68 @@ export default async function RoundResultsPage({ params }: ResultsPageProps) {
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap lg:justify-end">
           <CopyCurrentUrlButton label="결과 링크 복사" copiedLabel="링크 복사 완료" />
           <Link
             href="/admin/rounds"
-            className="rounded-2xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700"
+            className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-slate-100 px-4 py-2 text-center text-sm font-semibold text-slate-700"
           >
             라운드 목록
           </Link>
           <Link
             href={`/admin/rounds/${typedRound.id}/scores`}
-            className="rounded-2xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white"
+            className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-emerald-600 px-4 py-2 text-center text-sm font-semibold text-white"
           >
             스코어 입력
           </Link>
           <Link
             href={`/admin/rounds/${typedRound.id}/results/print`}
-            className="rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
+            className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-slate-900 px-4 py-2 text-center text-sm font-semibold text-white"
           >
             인쇄용 결과표
           </Link>
         </div>
       </header>
 
-      <section className="grid gap-3 sm:grid-cols-4">
-        <div className="rounded-3xl bg-white p-5 shadow-sm">
+      <section className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="rounded-3xl bg-white p-4 shadow-sm">
           <p className="text-sm text-slate-500">경기 형태</p>
-          <p className="mt-2 text-xl font-bold text-slate-900">
+          <p className="mt-1 text-lg font-bold text-slate-900 sm:text-xl">
             {getGameTypeLabel(typedRound.game_type)}
           </p>
         </div>
 
-        <div className="rounded-3xl bg-white p-5 shadow-sm">
+        <div className="rounded-3xl bg-white p-4 shadow-sm">
           <p className="text-sm text-slate-500">점수 계산</p>
-          <p className="mt-2 text-xl font-bold text-slate-900">
+          <p className="mt-1 text-lg font-bold text-slate-900 sm:text-xl">
             {getScoringTypeLabel(typedRound.scoring_type)}
           </p>
         </div>
 
-        <div className="rounded-3xl bg-white p-5 shadow-sm">
+        <div className="rounded-3xl bg-white p-4 shadow-sm">
           <p className="text-sm text-slate-500">스코어 입력</p>
-          <p className="mt-2 text-xl font-bold text-slate-900">
+          <p className="mt-1 text-lg font-bold text-slate-900 sm:text-xl">
             {rankedScores.filter((score) => score.hasScore).length}명
           </p>
         </div>
 
-        <div className="rounded-3xl bg-white p-5 shadow-sm">
+        <div className="rounded-3xl bg-white p-4 shadow-sm">
           <p className="text-sm text-slate-500">현재 1위</p>
-          <p className="mt-2 text-xl font-bold text-slate-900">
+          <p className="mt-1 text-lg font-bold text-slate-900 sm:text-xl">
             {leader?.member?.name ?? '-'}
           </p>
         </div>
 
-        <div className="rounded-3xl bg-white p-5 shadow-sm">
+        <div className="rounded-3xl bg-white p-4 shadow-sm">
           <p className="text-sm text-slate-500">미입력 인원</p>
-          <p className="mt-2 text-xl font-bold text-slate-900">
+          <p className="mt-1 text-lg font-bold text-slate-900 sm:text-xl">
             {rankedScores.filter((score) => !score.hasScore).length}명
           </p>
         </div>
       </section>
 
       
-      <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5 text-sm leading-6 text-emerald-800">
+      <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-4 text-sm leading-6 text-emerald-800">
         <p className="font-bold text-emerald-900">결과 입력 현황</p>
         <p className="mt-1">
           입력 완료 {rankedScores.filter((score) => score.hasScore).length}명 ·
@@ -324,7 +324,7 @@ export default async function RoundResultsPage({ params }: ResultsPageProps) {
         </p>
       </section>
 
-<section className="rounded-3xl border border-blue-200 bg-blue-50 p-5 text-sm leading-6 text-blue-800">
+<section className="rounded-3xl border border-blue-200 bg-blue-50 p-4 text-sm leading-6 text-blue-800">
         {getCalculationNote(typedRound.scoring_type)}
         {rankedScores.some((score) => !score.hasScore) && (
           <p className="mt-2 font-semibold">
@@ -335,8 +335,8 @@ export default async function RoundResultsPage({ params }: ResultsPageProps) {
 
 
       {rankedScores.some((score) => !score.hasScore) && (
-        <section className="rounded-3xl border border-amber-200 bg-amber-50 p-5">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <section className="rounded-3xl border border-amber-200 bg-amber-50 p-4">
+          <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
             <div>
               <h2 className="font-bold text-amber-900">미입력 스코어가 있습니다</h2>
               <p className="mt-1 text-sm leading-6 text-amber-800">
@@ -354,7 +354,7 @@ export default async function RoundResultsPage({ params }: ResultsPageProps) {
       )}
 
       <section className="overflow-hidden rounded-3xl bg-white shadow-sm">
-        <div className="border-b border-slate-100 px-5 py-4">
+        <div className="border-b border-slate-100 px-4 py-3 sm:px-5 sm:py-4">
           <h2 className="font-bold text-slate-900">결과 순위</h2>
         </div>
 
@@ -363,7 +363,7 @@ export default async function RoundResultsPage({ params }: ResultsPageProps) {
             rankedScores.map((score) => (
               <article
                 key={score.member_id}
-                className="grid gap-3 px-5 py-4 sm:grid-cols-[80px_1fr_220px]"
+                className="grid grid-cols-[auto_minmax(0,1fr)] gap-3 px-4 py-3 sm:grid-cols-[80px_minmax(0,1fr)_220px] sm:px-5 sm:py-4"
               >
                 <div className="flex items-center">
                   <span className="rounded-2xl bg-slate-100 px-3 py-2 text-sm font-bold text-slate-700">
@@ -383,8 +383,8 @@ export default async function RoundResultsPage({ params }: ResultsPageProps) {
                   )}
                 </div>
 
-                <div className="flex flex-col justify-center gap-1 sm:items-end">
-                  <span className="text-xl font-bold text-emerald-700">
+                <div className="col-span-2 flex flex-row flex-wrap items-center justify-between gap-2 rounded-2xl bg-slate-50 px-3 py-2 sm:col-span-1 sm:flex-col sm:justify-center sm:bg-transparent sm:px-0 sm:py-0 sm:items-end">
+                  <span className="text-lg font-bold text-emerald-700 sm:text-xl">
                     {score.hasScore ? score.displayScore : '스코어 미입력'}
                   </span>
                   <span className="text-sm text-slate-500">

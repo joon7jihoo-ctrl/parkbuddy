@@ -46,11 +46,11 @@ export default async function EditRoundPage({ params }: EditRoundPageProps) {
   const typedRound = round as RoundInfo;
 
   return (
-    <main className="mx-auto max-w-3xl space-y-5 px-4 py-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <main className="mx-auto max-w-5xl space-y-4 px-3 py-4 sm:px-4 sm:py-5">
+      <header className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
         <div>
           <p className="text-sm font-semibold text-emerald-600">라운드 수정</p>
-          <h1 className="mt-1 text-2xl font-bold text-slate-900">
+          <h1 className="mt-1 text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
             {typedRound.title ?? '라운드'}
           </h1>
           <p className="mt-1 text-sm text-slate-500">
@@ -60,13 +60,13 @@ export default async function EditRoundPage({ params }: EditRoundPageProps) {
 
         <Link
           href="/admin/rounds"
-          className="rounded-2xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700"
+          className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-slate-100 px-4 py-2 text-center text-sm font-semibold text-slate-700"
         >
           라운드 목록
         </Link>
       </header>
 
-      <form action={updateRoundAction} className="space-y-4 rounded-3xl bg-white p-5 shadow-sm">
+      <form action={updateRoundAction} className="grid gap-4 rounded-3xl bg-white p-4 shadow-sm sm:p-5 md:grid-cols-2">
         <input type="hidden" name="roundId" value={typedRound.id} />
 
         <label className="block">
@@ -99,7 +99,7 @@ export default async function EditRoundPage({ params }: EditRoundPageProps) {
           />
         </label>
 
-        <label className="block">
+        <label className="block md:col-span-2">
           <span className="text-sm font-medium text-slate-700">메모</span>
           <textarea
             name="memo"
@@ -109,7 +109,7 @@ export default async function EditRoundPage({ params }: EditRoundPageProps) {
           />
         </label>
 
-        <div className="flex flex-col gap-2 sm:flex-row">
+        <div className="grid gap-2 sm:grid-cols-2 md:col-span-2">
           <button
             type="submit"
             className="h-12 flex-1 rounded-2xl bg-emerald-600 px-4 font-bold text-white"
