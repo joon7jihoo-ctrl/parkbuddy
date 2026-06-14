@@ -163,7 +163,7 @@ export default async function RoundParticipantsPage({
 
         <Link
           href="/admin/rounds"
-          className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700"
+          className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700"
         >
           라운드 목록
         </Link>
@@ -255,7 +255,7 @@ export default async function RoundParticipantsPage({
           </div>
         </section>
 
-        <div className="sticky bottom-24 z-20 rounded-3xl border border-white/70 bg-white/95 p-2 shadow-xl backdrop-blur sm:static sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-none">
+        <div className="sticky bottom-24 z-20 mx-auto w-full max-w-2xl rounded-3xl border border-white/70 bg-white/95 p-2 shadow-xl backdrop-blur sm:static sm:max-w-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-none">
           <button
             type="submit"
             className="h-12 w-full rounded-2xl bg-emerald-600 px-5 text-sm font-bold text-white"

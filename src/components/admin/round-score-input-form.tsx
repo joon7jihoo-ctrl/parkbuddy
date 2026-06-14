@@ -133,7 +133,7 @@ export function RoundScoreInputForm({ roundId, participants }: RoundScoreInputFo
                       max={200}
                       value={draft.strokes}
                       onChange={(event) => updateDraft(participant.memberId, 'strokes', event.target.value)}
-                      className="mt-1 h-11 w-full rounded-2xl border border-slate-200 px-3 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                      className="mt-1 h-12 w-full rounded-2xl border border-slate-200 px-3 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                     />
                   </label>
 
@@ -147,7 +147,7 @@ export function RoundScoreInputForm({ roundId, participants }: RoundScoreInputFo
                       max={100}
                       value={draft.stablefordPoints}
                       onChange={(event) => updateDraft(participant.memberId, 'stablefordPoints', event.target.value)}
-                      className="mt-1 h-11 w-full rounded-2xl border border-slate-200 px-3 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                      className="mt-1 h-12 w-full rounded-2xl border border-slate-200 px-3 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                     />
                   </label>
 
@@ -158,7 +158,7 @@ export function RoundScoreInputForm({ roundId, participants }: RoundScoreInputFo
                       type="text"
                       value={draft.memo}
                       onChange={(event) => updateDraft(participant.memberId, 'memo', event.target.value)}
-                      className="mt-1 h-11 w-full rounded-2xl border border-slate-200 px-3 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                      className="mt-1 h-12 w-full rounded-2xl border border-slate-200 px-3 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                     />
                   </label>
                 </article>
@@ -173,7 +173,7 @@ export function RoundScoreInputForm({ roundId, participants }: RoundScoreInputFo
         </div>
       </section>
 
-      <div className="sticky bottom-24 z-20 rounded-3xl border border-white/70 bg-white/95 p-2 shadow-xl backdrop-blur sm:static sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-none">
+      <div className="sticky bottom-24 z-20 mx-auto w-full max-w-2xl rounded-3xl border border-white/70 bg-white/95 p-2 shadow-xl backdrop-blur sm:static sm:max-w-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-none">
         <button
           type="submit"
           disabled={!participants.length}

@@ -189,13 +189,13 @@ export default async function PairingsPage({
         <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap lg:justify-end">
           <Link
             href={`/admin/rounds/${typedRound.id}/participants`}
-            className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-slate-100 px-4 py-2 text-center text-sm font-semibold text-slate-700"
+            className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-slate-100 px-4 py-2 text-center text-sm font-semibold text-slate-700"
           >
             참가자 선택
           </Link>
           <Link
             href="/admin/rounds"
-            className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-slate-900 px-4 py-2 text-center text-sm font-semibold text-white"
+            className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-slate-900 px-4 py-2 text-center text-sm font-semibold text-white"
           >
             라운드 목록
           </Link>
@@ -249,7 +249,7 @@ export default async function PairingsPage({
           </p>
           <Link
             href={`/admin/rounds/${typedRound.id}/participants`}
-            className="mt-5 inline-flex rounded-2xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white"
+            className="mt-5 inline-flex rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white"
           >
             참가자 선택하기
           </Link>

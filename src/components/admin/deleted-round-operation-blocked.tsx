@@ -22,13 +22,13 @@ export function DeletedRoundOperationBlocked({
         <div className="mt-5 flex flex-col gap-2 sm:flex-row">
           <Link
             href="/admin/rounds/deleted"
-            className="flex h-11 items-center justify-center rounded-2xl bg-amber-600 px-4 text-sm font-bold text-white"
+            className="flex h-12 items-center justify-center rounded-2xl bg-amber-600 px-4 text-sm font-bold text-white"
           >
             삭제된 라운드 보기
           </Link>
           <Link
             href="/admin/rounds"
-            className="flex h-11 items-center justify-center rounded-2xl bg-white px-4 text-sm font-bold text-slate-700 ring-1 ring-amber-200"
+            className="flex h-12 items-center justify-center rounded-2xl bg-white px-4 text-sm font-bold text-slate-700 ring-1 ring-amber-200"
           >
             기본 라운드 목록
           </Link>

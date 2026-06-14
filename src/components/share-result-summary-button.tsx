@@ -46,7 +46,7 @@ export function ShareResultSummaryButton({
     <button
       type="button"
       onClick={handleCopy}
-      className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-violet-600 px-4 py-2 text-center text-sm font-semibold text-white"
+      className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-violet-600 px-4 py-2 text-center text-sm font-semibold text-white"
     >
       {copied ? copiedLabel : label}
     </button>

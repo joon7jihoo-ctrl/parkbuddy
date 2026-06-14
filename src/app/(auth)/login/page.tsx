@@ -24,7 +24,7 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-dvh items-center justify-center bg-slate-50 px-5 py-10">
-      <section className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-sm">
+      <section className="w-full max-w-2xl rounded-3xl bg-white p-6 shadow-sm">
         <div className="flex size-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
           <ShieldCheck aria-hidden />
         </div>

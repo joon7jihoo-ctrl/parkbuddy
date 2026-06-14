@@ -60,7 +60,7 @@ export default async function EditRoundPage({ params }: EditRoundPageProps) {
 
         <Link
           href="/admin/rounds"
-          className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-slate-100 px-4 py-2 text-center text-sm font-semibold text-slate-700"
+          className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-slate-100 px-4 py-2 text-center text-sm font-semibold text-slate-700"
         >
           라운드 목록
         </Link>

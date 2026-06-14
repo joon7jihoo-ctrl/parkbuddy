@@ -2,51 +2,26 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { CalendarDays, Gauge, Home, MessageSquareText, Trophy, UserRound, UsersRound } from 'lucide-react';
+import { Home } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-type MobileBottomNavProps = {
-  isAdmin?: boolean;
-};
-
-export function MobileBottomNav({ isAdmin = false }: MobileBottomNavProps) {
+export function MobileBottomNav() {
   const pathname = usePathname();
-  const navItems = [
-    { href: '/', label: '홈', icon: Home },
-    ...(isAdmin ? [{ href: '/admin', label: '대시보드', icon: Gauge }] : []),
-    { href: isAdmin ? '/admin/members' : '/members', label: '회원', icon: UsersRound },
-    { href: '/schedule', label: '일정', icon: CalendarDays },
-    { href: '/scores', label: '스코어', icon: Trophy },
-    { href: '/board', label: '게시판', icon: MessageSquareText },
-    { href: '/mypage', label: '내정보', icon: UserRound },
-  ];
+  const active = pathname === '/';
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white/95 backdrop-blur safe-bottom print:hidden">
-      <div
-        className="mx-auto grid max-w-3xl"
-        style={{ gridTemplateColumns: 'repeat(' + navItems.length + ', minmax(0, 1fr))' }}
+    <nav className="fixed inset-x-0 bottom-0 z-50 flex justify-center px-4 pb-3 print:hidden safe-bottom">
+      <Link
+        href="/"
+        className={cn(
+          'inline-flex min-h-14 min-w-28 flex-col items-center justify-center gap-1 rounded-full border border-slate-200 bg-white/95 px-6 text-[11px] font-semibold shadow-lg shadow-slate-900/10 backdrop-blur transition active:scale-[0.98]',
+          active ? 'text-emerald-600' : 'text-slate-600'
+        )}
+        aria-current={active ? 'page' : undefined}
       >
-        {navItems.map((item) => {
-          const active = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
-          const Icon = item.icon;
-
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                'flex h-16 flex-col items-center justify-center gap-1 text-[10px] sm:text-[11px]',
-                active ? 'font-semibold text-emerald-600' : 'text-slate-500',
-              )}
-              aria-current={active ? 'page' : undefined}
-            >
-              <Icon size={20} aria-hidden />
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
-      </div>
+        <Home size={21} aria-hidden />
+        <span>홈</span>
+      </Link>
     </nav>
   );
 }

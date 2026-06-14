@@ -162,7 +162,7 @@ export default async function MemberLinkPage({
     : undefined;
 
   return (
-    <main className="mx-auto flex min-h-[calc(100dvh-120px)] max-w-md items-center px-4 py-8">
+    <main className="mx-auto flex min-h-[calc(100dvh-120px)] max-w-2xl items-center px-4 py-8">
       <section className="w-full rounded-3xl bg-white p-6 shadow-sm">
         <div>
           <p className="text-sm font-semibold text-emerald-600">ParkBuddy</p>

@@ -341,7 +341,7 @@ export default async function RoundResultsPage({ params }: ResultsPageProps) {
               />
               <Link
                 href={`/admin/rounds/${typedRound.id}/results/print`}
-                className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-slate-900 px-4 py-2 text-center text-sm font-semibold text-white"
+                className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-slate-900 px-4 py-2 text-center text-sm font-semibold text-white"
               >
                 인쇄용 결과표
               </Link>
@@ -372,7 +372,7 @@ export default async function RoundResultsPage({ params }: ResultsPageProps) {
                 className={`${score.hasScore ? 'bg-white' : 'bg-amber-50/50'} grid grid-cols-[auto_minmax(0,1fr)] gap-3 px-4 py-3 sm:grid-cols-[80px_minmax(0,1fr)_220px] sm:px-5 sm:py-4`}
               >
                 <div className="flex items-center">
-                  <span className="rounded-2xl bg-slate-100 px-3 py-2 text-sm font-bold text-slate-700">
+                  <span className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-bold text-slate-700">
                     {score.rank ? `${score.rank}위` : '미입력'}
                   </span>
                 </div>
@@ -415,8 +415,8 @@ export default async function RoundResultsPage({ params }: ResultsPageProps) {
         </div>
       </section>
 
-      <div className="fixed inset-x-0 bottom-20 z-40 px-3 sm:bottom-24 lg:bottom-6">
-        <div className="mx-auto grid max-w-xl grid-cols-2 gap-2 rounded-3xl border border-slate-200 bg-white/95 p-2 shadow-2xl backdrop-blur">
+      <div className="parkbuddy-sticky-cta">
+        <div data-parkbuddy-sticky-cta="true" className="parkbuddy-sticky-cta__inner">
           <Link
             href="/admin/rounds"
             className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-slate-100 px-4 py-2 text-center text-sm font-bold text-slate-700"

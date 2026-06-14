@@ -103,11 +103,6 @@ export function MemberFilterControls({ counts, initialStatus = 'active' }: Membe
 
     updateCount(nextVisibleCount);
   }
-
-  function getInputValue() {
-    return inputRef.current?.value ?? '';
-  }
-
   function clearInput() {
     if (inputRef.current) {
       inputRef.current.value = '';
@@ -160,7 +155,7 @@ export function MemberFilterControls({ counts, initialStatus = 'active' }: Membe
             type="button"
             onClick={() => handleStatusClick('active')}
             className={[
-              'h-11 rounded-2xl text-sm font-bold transition',
+              'h-12 rounded-2xl text-sm font-bold transition',
               status === 'active' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-700',
             ].join(' ')}
           >
@@ -170,7 +165,7 @@ export function MemberFilterControls({ counts, initialStatus = 'active' }: Membe
             type="button"
             onClick={() => handleStatusClick('inactive')}
             className={[
-              'h-11 rounded-2xl text-sm font-bold transition',
+              'h-12 rounded-2xl text-sm font-bold transition',
               status === 'inactive' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-700',
             ].join(' ')}
           >

@@ -204,9 +204,8 @@ export default async function AdminRoundsPage({ searchParams }: AdminRoundsPageP
         )}
       </section>
 
-      <nav className="fixed inset-x-0 bottom-16 z-40 border-t border-slate-200 bg-white/95 px-4 py-3 shadow-[0_-10px_30px_rgba(15,23,42,0.08)] backdrop-blur print:hidden md:bottom-20">
-        <div className="mx-auto grid max-w-3xl grid-cols-2 gap-2">
-          <Link href="/admin" className="flex h-12 items-center justify-center rounded-2xl bg-slate-100 text-sm font-bold text-slate-700">대시보드</Link>
+      <nav className="parkbuddy-sticky-cta">
+        <div data-parkbuddy-sticky-cta="true" className="parkbuddy-sticky-cta__inner">
           <Link href="/admin/rounds/new" className="flex h-12 items-center justify-center rounded-2xl bg-emerald-600 text-sm font-bold text-white shadow-sm">라운드 생성</Link>
         </div>
       </nav>

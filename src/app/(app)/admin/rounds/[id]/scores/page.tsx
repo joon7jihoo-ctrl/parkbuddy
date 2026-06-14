@@ -121,10 +121,10 @@ export default async function RoundScoresPage({ params, searchParams }: ScoresPa
         </div>
 
         <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap lg:justify-end">
-          <Link href={`/admin/rounds/${round.id}/pairings`} className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-slate-100 px-4 py-2 text-center text-sm font-semibold text-slate-700">
+          <Link href={`/admin/rounds/${round.id}/pairings`} className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-slate-100 px-4 py-2 text-center text-sm font-semibold text-slate-700">
             조 편성
           </Link>
-          <Link href="/admin/rounds" className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-slate-100 px-4 py-2 text-center text-sm font-semibold text-slate-700">
+          <Link href="/admin/rounds" className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-slate-100 px-4 py-2 text-center text-sm font-semibold text-slate-700">
             라운드 목록
           </Link>
         </div>

@@ -137,14 +137,14 @@ function countParticipantsByRound(participants: RoundParticipant[]) {
 
 function actionLinkClassName(variant: 'default' | 'dark' | 'green' = 'default') {
   if (variant === 'dark') {
-    return 'inline-flex min-h-11 items-center justify-center rounded-2xl bg-slate-900 px-3 py-2 text-center text-sm font-bold text-white shadow-sm transition hover:bg-slate-800';
+    return 'inline-flex min-h-12 items-center justify-center rounded-2xl bg-slate-900 px-3 py-2 text-center text-sm font-bold text-white shadow-sm transition hover:bg-slate-800';
   }
 
   if (variant === 'green') {
-    return 'inline-flex min-h-11 items-center justify-center rounded-2xl bg-emerald-600 px-3 py-2 text-center text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700';
+    return 'inline-flex min-h-12 items-center justify-center rounded-2xl bg-emerald-600 px-3 py-2 text-center text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700';
   }
 
-  return 'inline-flex min-h-11 items-center justify-center rounded-2xl bg-slate-100 px-3 py-2 text-center text-sm font-bold text-slate-700 transition hover:bg-slate-200';
+  return 'inline-flex min-h-12 items-center justify-center rounded-2xl bg-slate-100 px-3 py-2 text-center text-sm font-bold text-slate-700 transition hover:bg-slate-200';
 }
 
 export default async function AdminDeletedRoundsPage({
@@ -327,7 +327,7 @@ export default async function AdminDeletedRoundsPage({
                         <input type="hidden" name="roundId" value={round.id} />
                         <ConfirmSubmitButton
                           confirmMessage={`${roundTitle}를 기본 라운드 목록으로 복구할까요?`}
-                          className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-emerald-600 px-4 py-2 text-sm font-black text-white shadow-sm transition hover:bg-emerald-700"
+                          className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-emerald-600 px-4 py-2 text-sm font-black text-white shadow-sm transition hover:bg-emerald-700"
                         >
                           라운드 복구
                         </ConfirmSubmitButton>
