@@ -19,7 +19,6 @@ export default async function ScoresPage() {
       <TopBar
         title="스코어"
         description={`${member.name}님의 라운딩 기록입니다.`}
-        action={member.role === 'admin' ? { href: '/admin/rounds/new', label: '라운딩 등록' } : undefined}
       />
       <section className="grid grid-cols-3 gap-3">
         <StatCard label="라운딩" value={stats?.rounds_count ?? 0} />
