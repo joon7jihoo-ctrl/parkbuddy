@@ -1,6 +1,5 @@
-import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
-import { formatKoreanPhoneNumber, normalizeDigits } from '@/lib/korean-search';
+import { PublicMembersList } from '@/components/public-members-list';
 
 type Member = {
   id: string;
@@ -9,6 +8,13 @@ type Member = {
   handicap: number | null;
   joined_on: string | null;
   role: 'admin' | 'member';
+};
+
+type MemberScoreStat = {
+  member_id: string;
+  rounds_count: number | null;
+  avg_score: number | null;
+  best_score: number | null;
 };
 
 export default async function MembersPage() {
@@ -24,54 +30,57 @@ export default async function MembersPage() {
   }
 
   const list = (members ?? []) as Member[];
+  const memberIds = list.map((member) => member.id);
+
+  const { data: stats } = memberIds.length
+    ? await supabase
+        .from('member_score_stats')
+        .select('member_id, rounds_count, avg_score, best_score')
+        .in('member_id', memberIds)
+    : { data: [] };
+
+  const statsMap = new Map(
+    ((stats ?? []) as MemberScoreStat[]).map((stat) => [stat.member_id, stat]),
+  );
+
+  const adminCount = list.filter((member) => member.role === 'admin').length;
+  const memberCount = list.length - adminCount;
+
+  const publicMembers = list.map((member) => {
+    const stat = statsMap.get(member.id);
+
+    return {
+      ...member,
+      roundsCount: stat?.rounds_count ?? 0,
+      averageScore: stat?.avg_score ?? null,
+      bestScore: stat?.best_score ?? null,
+    };
+  });
 
   return (
-    <main className="mx-auto max-w-7xl space-y-5 px-4 py-6 pb-28">
+    <main className="mx-auto max-w-7xl space-y-4 px-4 py-5 pb-28">
       <header>
         <p className="text-sm font-semibold text-emerald-600">회원 목록</p>
         <h1 className="mt-1 text-2xl font-bold text-slate-900">함께하는 회원</h1>
-        <p className="mt-1 text-sm text-slate-500">총 {list.length}명의 활성 회원입니다.</p>
+        <p className="mt-1 text-sm text-slate-500">동호회 회원 연락처와 기본 정보를 확인합니다.</p>
       </header>
 
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {list.map((member) => {
-          const formattedPhone = formatKoreanPhoneNumber(member.phone);
-          const phoneDigits = normalizeDigits(member.phone);
-
-          return (
-            <article key={member.id} className="rounded-3xl bg-white p-4 shadow-sm">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <Link href={'/members/' + member.id} className="text-lg font-bold text-slate-900 underline-offset-4 hover:underline">
-                    {member.name}
-                  </Link>
-                  <p className="mt-1 text-sm text-slate-500">{member.role === 'admin' ? '운영진' : '회원'}</p>
-                </div>
-                <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-emerald-50 font-bold text-emerald-700">
-                  {member.name.slice(0, 1)}
-                </div>
-              </div>
-
-              <dl className="mt-4 grid grid-cols-2 gap-2 text-sm text-slate-600">
-                <div className="rounded-2xl bg-slate-50 p-3">
-                  <dt className="text-xs text-slate-400">연락처</dt>
-                  <dd className="mt-1 font-semibold text-slate-800">
-                    {phoneDigits ? <a href={'tel:' + phoneDigits} className="underline-offset-4 hover:underline">{formattedPhone}</a> : '-'}
-                  </dd>
-                </div>
-                <div className="rounded-2xl bg-slate-50 p-3">
-                  <dt className="text-xs text-slate-400">핸디캡</dt>
-                  <dd className="mt-1 font-semibold text-slate-800">{member.handicap ?? 0}</dd>
-                </div>
-                <div className="rounded-2xl bg-slate-50 p-3">
-                  <dt className="text-xs text-slate-400">가입일</dt>
-                  <dd className="mt-1 font-semibold text-slate-800">{member.joined_on || '-'}</dd>
-                </div>
-              </dl>
-            </article>
-          );
-        })}
+      <section className="grid grid-cols-3 gap-2 sm:gap-2.5">
+        <article className="rounded-[28px] border border-slate-200 bg-emerald-600 px-2.5 py-2.5 text-center text-white shadow-sm">
+          <p className="text-xs font-semibold">전체</p>
+          <p className="mt-1 text-xl font-extrabold leading-none">{list.length}</p>
+        </article>
+        <article className="rounded-[28px] border border-slate-200 bg-white px-2.5 py-2.5 text-center text-slate-900 shadow-sm">
+          <p className="text-xs font-semibold text-slate-500">운영진</p>
+          <p className="mt-1 text-xl font-extrabold leading-none">{adminCount}</p>
+        </article>
+        <article className="rounded-[28px] border border-slate-200 bg-white px-2.5 py-2.5 text-center text-slate-900 shadow-sm">
+          <p className="text-xs font-semibold text-slate-500">회원</p>
+          <p className="mt-1 text-xl font-extrabold leading-none">{memberCount}</p>
+        </article>
       </section>
+
+      <PublicMembersList members={publicMembers} />
     </main>
   );
 }

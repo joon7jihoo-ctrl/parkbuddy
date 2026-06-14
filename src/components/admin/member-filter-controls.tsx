@@ -66,18 +66,11 @@ export function MemberFilterControls({ counts, initialStatus = 'active' }: Membe
   const [hasQuery, setHasQuery] = useState(false);
   const [isPending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
-  const countRef = useRef<HTMLParagraphElement>(null);
-
   const activeCounts = counts[status];
   const helperText = isPending
     ? '검색 중...'
     : '이름 일부, 초성, 자소, 연락처 숫자 한 자리까지 바로 검색됩니다.';
 
-  function updateCount(nextVisibleCount: number) {
-    if (countRef.current) {
-      countRef.current.textContent = '표시 ' + nextVisibleCount + '명';
-    }
-  }
 
   function applyFilter(nextStatus: MemberStatusFilter, nextView: MemberViewFilter, nextQuery: string) {
     const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-member-card]'));
