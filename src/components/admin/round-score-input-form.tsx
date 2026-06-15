@@ -65,23 +65,17 @@ export function RoundScoreInputForm({ roundId, participants, playDateLabel }: Ro
   const visibleParticipants = useMemo(
     () =>
       showMissingOnly
-        ? participants.filter((participant) => {
-            const isMissing = !hasScore(drafts[participant.memberId] ?? getEmptyDraft());
-            return isMissing || participant.memberId === activeEditingMemberId;
-          })
+        ? participants.filter((participant) => !hasScore(drafts[participant.memberId] ?? getEmptyDraft()))
         : participants,
-    [activeEditingMemberId, drafts, participants, showMissingOnly],
+    [drafts, participants, showMissingOnly],
   );
 
   const hiddenParticipants = useMemo(
     () =>
       showMissingOnly
-        ? participants.filter((participant) =>
-            participant.memberId !== activeEditingMemberId &&
-            hasScore(drafts[participant.memberId] ?? getEmptyDraft()),
-          )
+        ? participants.filter((participant) => hasScore(drafts[participant.memberId] ?? getEmptyDraft()))
         : [],
-    [activeEditingMemberId, drafts, participants, showMissingOnly],
+    [drafts, participants, showMissingOnly],
   );
 
   function updateDraft(memberId: string, field: keyof ScoreDraft, value: string) {
@@ -114,7 +108,10 @@ export function RoundScoreInputForm({ roundId, participants, playDateLabel }: Ro
           </div>
           <button
             type="button"
-            onClick={() => setShowMissingOnly((current) => !current)}
+            onClick={() => {
+              setActiveEditingMemberId(null);
+              setShowMissingOnly((current) => !current);
+            }}
             disabled={!participants.length}
             aria-pressed={showMissingOnly}
             className={[
@@ -130,7 +127,6 @@ export function RoundScoreInputForm({ roundId, participants, playDateLabel }: Ro
       </section>
 
       <section className="rounded-3xl bg-white p-3 shadow-sm sm:p-4">
-
         {hiddenParticipants.map((participant) => (
           <HiddenScoreInputs
             key={`hidden-${participant.memberId}`}
@@ -145,8 +141,55 @@ export function RoundScoreInputForm({ roundId, participants, playDateLabel }: Ro
               const draft = drafts[participant.memberId] ?? getEmptyDraft();
               const hasAnyScore = hasScore(draft);
 
+              if (hasAnyScore && participant.memberId !== activeEditingMemberId && !showMissingOnly) {
+                return (
+                  <article
+                    key={participant.memberId}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setActiveEditingMemberId(participant.memberId)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        setActiveEditingMemberId(participant.memberId);
+                      }
+                    }}
+                    className="grid min-h-11 cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-3xl border border-emerald-100 bg-emerald-50/30 px-3 py-2.5 transition hover:border-emerald-200 hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-100 sm:px-4 sm:py-3"
+                    aria-label={`${participant.name} 스코어 수정하기`}
+                  >
+                    <HiddenScoreInputs participant={participant} draft={draft} />
+                    <div className="min-w-0">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <p className="truncate font-bold text-slate-900">{participant.name}</p>
+                        <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-700">
+                          입력 완료
+                        </span>
+                      </div>
+                      <p className="mt-1 truncate text-xs font-medium text-slate-500">
+                        핸디캡 {participant.handicap ?? 0} · 총 타수 {draft.strokes || '-'} · 포인트 {draft.stablefordPoints || '-'}
+                      </p>
+                    </div>
+                  </article>
+                );
+              }
+
               return (
-                <article key={participant.memberId} className={`${hasAnyScore ? 'border-emerald-100 bg-emerald-50/30' : 'border-amber-100 bg-amber-50/30'} grid grid-cols-[minmax(78px,0.9fr)_minmax(62px,0.62fr)_minmax(128px,1.38fr)] items-end gap-2 rounded-3xl border px-3 py-3 sm:grid-cols-[minmax(88px,0.9fr)_minmax(68px,0.62fr)_minmax(142px,1.42fr)] sm:gap-3 sm:px-5 sm:py-4`}>
+                <article
+                  key={participant.memberId}
+                  onClick={(event) => {
+                    if (!hasAnyScore || participant.memberId !== activeEditingMemberId) {
+                      return;
+                    }
+
+                    const target = event.target as HTMLElement;
+                    if (target.closest('input, label')) {
+                      return;
+                    }
+
+                    setActiveEditingMemberId(null);
+                  }}
+                  className={`${hasAnyScore ? 'border-emerald-100 bg-emerald-50/30' : 'border-amber-100 bg-amber-50/30'} grid grid-cols-[minmax(78px,0.9fr)_minmax(62px,0.62fr)_minmax(128px,1.38fr)] items-end gap-2 rounded-3xl border px-3 py-3 sm:grid-cols-[minmax(88px,0.9fr)_minmax(68px,0.62fr)_minmax(142px,1.42fr)] sm:gap-3 sm:px-5 sm:py-4`}
+                >
                   <input type="hidden" name="memberId" value={participant.memberId} />
                   <input type="hidden" name={`memo:${participant.memberId}`} value={draft.memo} />
 
