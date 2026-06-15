@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireAdmin } from '@/lib/auth/require-member';
 import { RoundScoreInputForm } from '@/components/admin/round-score-input-form';
@@ -102,11 +101,6 @@ export default async function RoundScoresPage({ params, searchParams }: ScoresPa
       memo: score?.memo ?? null,
     };
   });
-  const initialCompletedScoreCount = scoreFormParticipants.filter(
-    (participant) =>
-      typeof participant.strokes === 'number' ||
-      typeof participant.stablefordPoints === 'number',
-  ).length;
   const errorMessage = getErrorMessage(queryParams.error);
 
   return (
@@ -120,31 +114,7 @@ export default async function RoundScoresPage({ params, searchParams }: ScoresPa
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap lg:justify-end">
-          <Link href={`/admin/rounds/${round.id}/pairings`} className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-slate-100 px-4 py-2 text-center text-sm font-semibold text-slate-700">
-            조 편성
-          </Link>
-          <Link href="/admin/rounds" className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-slate-100 px-4 py-2 text-center text-sm font-semibold text-slate-700">
-            라운드 목록
-          </Link>
-        </div>
       </header>
-
-
-      <section data-round-detail-mobile-summary className="grid grid-cols-3 gap-2 rounded-3xl bg-white p-3 text-center shadow-sm sm:hidden">
-        <div className="rounded-2xl bg-slate-50 px-2 py-2">
-          <p className="text-[11px] font-medium text-slate-500">일자</p>
-          <p className="mt-1 truncate text-xs font-bold text-slate-900">{formatDate(round.play_date)}</p>
-        </div>
-        <div className="rounded-2xl bg-slate-50 px-2 py-2">
-          <p className="text-[11px] font-medium text-slate-500">참가</p>
-          <p className="mt-1 text-xs font-bold text-slate-900">{participants.length}명</p>
-        </div>
-        <div className="rounded-2xl bg-emerald-50 px-2 py-2">
-          <p className="text-[11px] font-medium text-emerald-700">입력</p>
-          <p className="mt-1 text-xs font-bold text-emerald-900">{initialCompletedScoreCount}명</p>
-        </div>
-      </section>
 
       {queryParams.saved && (
         <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-700">
@@ -159,7 +129,11 @@ export default async function RoundScoresPage({ params, searchParams }: ScoresPa
       )}
 
 
-      <RoundScoreInputForm roundId={round.id} participants={scoreFormParticipants} />
+      <RoundScoreInputForm
+        roundId={round.id}
+        participants={scoreFormParticipants}
+        playDateLabel={formatDate(round.play_date)}
+      />
 
     </main>
   );

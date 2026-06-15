@@ -32,8 +32,16 @@ begin
 end;
 $$;
 
+drop trigger if exists prevent_post_privilege_escalation on public.posts;
+create trigger prevent_post_privilege_escalation
+before update on public.posts
+for each row
+execute function public.prevent_post_privilege_escalation();
+
 -- Posts: private posts are readable only by the author or club admins.
+-- Drop both legacy and current policy names so this file can be safely re-run in Supabase SQL Editor.
 drop policy if exists "members can read club posts" on public.posts;
+drop policy if exists "members can read allowed club posts" on public.posts;
 drop policy if exists "members can create free posts and admins can create notices" on public.posts;
 drop policy if exists "authors or admins can update posts" on public.posts;
 drop policy if exists "authors or admins can delete posts" on public.posts;
@@ -80,6 +88,7 @@ using (
 
 -- Attachments inherit post visibility. This prevents private post files from being discoverable by other members.
 drop policy if exists "members can read club attachments" on public.post_attachments;
+drop policy if exists "members can read allowed post attachments" on public.post_attachments;
 
 create policy "members can read allowed post attachments" on public.post_attachments
 for select to authenticated
@@ -99,7 +108,9 @@ using (
 
 -- Storage object policies mirror post visibility and ownership.
 drop policy if exists "club members can read post images" on storage.objects;
+drop policy if exists "members can read allowed post images" on storage.objects;
 drop policy if exists "club members can upload post images" on storage.objects;
+drop policy if exists "authors or admins can upload post images" on storage.objects;
 
 create policy "members can read allowed post images" on storage.objects
 for select to authenticated

@@ -15,6 +15,7 @@ type ScoreParticipant = {
 type RoundScoreInputFormProps = {
   roundId: string;
   participants: ScoreParticipant[];
+  playDateLabel: string;
 };
 
 type ScoreDraft = {
@@ -23,11 +24,28 @@ type ScoreDraft = {
   memo: string;
 };
 
+function getEmptyDraft(): ScoreDraft {
+  return { strokes: '', stablefordPoints: '', memo: '' };
+}
+
 function hasScore(draft: ScoreDraft) {
   return draft.strokes.trim() !== '' || draft.stablefordPoints.trim() !== '';
 }
 
-export function RoundScoreInputForm({ roundId, participants }: RoundScoreInputFormProps) {
+function HiddenScoreInputs({ participant, draft }: { participant: ScoreParticipant; draft: ScoreDraft }) {
+  return (
+    <div className="hidden" aria-hidden="true">
+      <input type="hidden" name="memberId" value={participant.memberId} />
+      <input type="hidden" name={`strokes:${participant.memberId}`} value={draft.strokes} />
+      <input type="hidden" name={`stablefordPoints:${participant.memberId}`} value={draft.stablefordPoints} />
+      <input type="hidden" name={`memo:${participant.memberId}`} value={draft.memo} />
+    </div>
+  );
+}
+
+export function RoundScoreInputForm({ roundId, participants, playDateLabel }: RoundScoreInputFormProps) {
+  const [showMissingOnly, setShowMissingOnly] = useState(false);
+  const [activeEditingMemberId, setActiveEditingMemberId] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, ScoreDraft>>(() =>
     participants.reduce<Record<string, ScoreDraft>>((acc, participant) => {
       acc[participant.memberId] = {
@@ -41,19 +59,36 @@ export function RoundScoreInputForm({ roundId, participants }: RoundScoreInputFo
   );
 
   const completedScoreCount = useMemo(
-    () => participants.filter((participant) => hasScore(drafts[participant.memberId] ?? { strokes: '', stablefordPoints: '', memo: '' })).length,
+    () => participants.filter((participant) => hasScore(drafts[participant.memberId] ?? getEmptyDraft())).length,
     [drafts, participants],
   );
-  const missingScoreCount = Math.max(participants.length - completedScoreCount, 0);
-  const completionRate = participants.length
-    ? Math.round((completedScoreCount / participants.length) * 100)
-    : 0;
+  const visibleParticipants = useMemo(
+    () =>
+      showMissingOnly
+        ? participants.filter((participant) => {
+            const isMissing = !hasScore(drafts[participant.memberId] ?? getEmptyDraft());
+            return isMissing || participant.memberId === activeEditingMemberId;
+          })
+        : participants,
+    [activeEditingMemberId, drafts, participants, showMissingOnly],
+  );
+
+  const hiddenParticipants = useMemo(
+    () =>
+      showMissingOnly
+        ? participants.filter((participant) =>
+            participant.memberId !== activeEditingMemberId &&
+            hasScore(drafts[participant.memberId] ?? getEmptyDraft()),
+          )
+        : [],
+    [activeEditingMemberId, drafts, participants, showMissingOnly],
+  );
 
   function updateDraft(memberId: string, field: keyof ScoreDraft, value: string) {
     setDrafts((current) => ({
       ...current,
       [memberId]: {
-        ...(current[memberId] ?? { strokes: '', stablefordPoints: '', memo: '' }),
+        ...(current[memberId] ?? getEmptyDraft()),
         [field]: value,
       },
     }));
@@ -63,68 +98,70 @@ export function RoundScoreInputForm({ roundId, participants }: RoundScoreInputFo
     <form action={saveRoundScoresAction} className="space-y-4 pb-24 sm:pb-0">
       <input type="hidden" name="roundId" value={roundId} />
 
-      <section data-score-result-input-ux className="grid gap-3 rounded-3xl border border-slate-200 bg-white p-3 shadow-sm sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:p-4">
-        <div>
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wide text-emerald-600">입력 진행률</p>
-              <p className="mt-1 text-lg font-black text-slate-900">
-                {completedScoreCount}/{participants.length}명 완료
-              </p>
-            </div>
-            <div className="rounded-2xl bg-slate-900 px-3 py-2 text-sm font-black text-white">
-              {completionRate}%
-            </div>
+      <section data-round-detail-mobile-summary className="rounded-3xl bg-white p-3 text-center shadow-sm">
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 sm:items-stretch">
+          <div className="rounded-2xl bg-slate-50 px-2 py-3">
+            <p className="text-xs font-bold text-slate-500">일자</p>
+            <p className="mt-1 truncate text-base font-black text-slate-900 sm:text-lg">{playDateLabel}</p>
           </div>
-          <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
-            <div className="h-full rounded-full bg-emerald-500 transition-all duration-200" style={{ width: `${completionRate}%` }} />
+          <div className="rounded-2xl bg-slate-50 px-2 py-3">
+            <p className="text-xs font-bold text-slate-500">참가</p>
+            <p className="mt-1 text-base font-black text-slate-900 sm:text-lg">{participants.length}명</p>
           </div>
-          <p className="mt-2 text-xs leading-5 text-slate-500">
-            입력 중에도 완료율이 바로 반영됩니다. 모바일에서는 미입력 카드를 먼저 채우면 스크롤을 줄일 수 있습니다.
-          </p>
-        </div>
-        <div className="grid grid-cols-2 gap-2 text-center sm:min-w-48">
-          <div className="rounded-2xl bg-emerald-50 px-3 py-2">
-            <p className="text-[11px] font-medium text-emerald-700">완료</p>
-            <p className="mt-1 text-lg font-black text-emerald-900">{completedScoreCount}명</p>
+          <div className="rounded-2xl bg-emerald-50 px-2 py-3">
+            <p className="text-xs font-bold text-emerald-700">입력</p>
+            <p className="mt-1 text-base font-black text-emerald-900 sm:text-lg">{completedScoreCount}명</p>
           </div>
-          <div className="rounded-2xl bg-amber-50 px-3 py-2">
-            <p className="text-[11px] font-medium text-amber-700">미입력</p>
-            <p className="mt-1 text-lg font-black text-amber-900">{missingScoreCount}명</p>
-          </div>
+          <button
+            type="button"
+            onClick={() => setShowMissingOnly((current) => !current)}
+            disabled={!participants.length}
+            aria-pressed={showMissingOnly}
+            className={[
+              'col-span-3 min-h-11 rounded-2xl px-4 text-sm font-bold shadow-sm transition disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 sm:col-span-1 sm:h-full sm:w-full',
+              showMissingOnly
+                ? 'bg-amber-500 text-white hover:bg-amber-600'
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200',
+            ].join(' ')}
+          >
+            {showMissingOnly ? '전체 보기' : '미입력만 보기'}
+          </button>
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-3xl bg-white shadow-sm">
-        <div className="border-b border-slate-100 px-4 py-3 sm:px-5 sm:py-4">
-          <h2 className="font-bold text-slate-900">참가자 스코어 {participants.length}명</h2>
-          <p className="mt-1 text-sm text-slate-500">
-            우선 총 타수와 스테이블포드 포인트를 저장합니다. 입력하면 완료율과 저장 버튼 문구가 즉시 바뀝니다.
-          </p>
-        </div>
+      <section className="rounded-3xl bg-white p-3 shadow-sm sm:p-4">
 
-        <div className="divide-y divide-slate-100">
-          {participants.length ? (
-            participants.map((participant) => {
-              const draft = drafts[participant.memberId] ?? { strokes: '', stablefordPoints: '', memo: '' };
+        {hiddenParticipants.map((participant) => (
+          <HiddenScoreInputs
+            key={`hidden-${participant.memberId}`}
+            participant={participant}
+            draft={drafts[participant.memberId] ?? getEmptyDraft()}
+          />
+        ))}
+
+        <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
+          {visibleParticipants.length ? (
+            visibleParticipants.map((participant) => {
+              const draft = drafts[participant.memberId] ?? getEmptyDraft();
               const hasAnyScore = hasScore(draft);
 
               return (
-                <article key={participant.memberId} className={`${hasAnyScore ? 'border-emerald-100 bg-emerald-50/30' : 'border-amber-100 bg-amber-50/30'} grid grid-cols-2 gap-3 rounded-3xl border px-4 py-3 sm:px-5 sm:py-4 md:grid-cols-[minmax(140px,1fr)_130px_160px_minmax(160px,1fr)] md:items-end`}>
+                <article key={participant.memberId} className={`${hasAnyScore ? 'border-emerald-100 bg-emerald-50/30' : 'border-amber-100 bg-amber-50/30'} grid grid-cols-[minmax(82px,0.85fr)_minmax(72px,0.75fr)_minmax(112px,1.15fr)] items-end gap-2 rounded-3xl border px-3 py-3 sm:grid-cols-[minmax(92px,0.85fr)_minmax(78px,0.75fr)_minmax(124px,1.2fr)] sm:gap-3 sm:px-5 sm:py-4`}>
                   <input type="hidden" name="memberId" value={participant.memberId} />
+                  <input type="hidden" name={`memo:${participant.memberId}`} value={draft.memo} />
 
-                  <div className="col-span-2 md:col-span-1">
-                    <p className="font-bold text-slate-900">{participant.name}</p>
-                    <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-slate-500">
-                      <span>핸디캡 {participant.handicap ?? 0}</span>
-                      <span className={hasAnyScore ? 'rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-700' : 'rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-700'}>
+                  <div className="min-w-0 self-center">
+                    <p className="truncate font-bold text-slate-900">{participant.name}</p>
+                    <div className="mt-1 space-y-1 text-sm text-slate-500">
+                      <p>핸디캡 {participant.handicap ?? 0}</p>
+                      <span className={hasAnyScore ? 'inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-700' : 'inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-700'}>
                         {hasAnyScore ? '입력 완료' : '미입력'}
                       </span>
                     </div>
                   </div>
 
-                  <label className="block">
-                    <span className="text-xs font-medium text-slate-500">총 타수</span>
+                  <label className="block min-w-0">
+                    <span className="block whitespace-nowrap text-[11px] font-medium text-slate-500 sm:text-xs">총 타수</span>
                     <input
                       name={`strokes:${participant.memberId}`}
                       type="number"
@@ -133,12 +170,14 @@ export function RoundScoreInputForm({ roundId, participants }: RoundScoreInputFo
                       max={200}
                       value={draft.strokes}
                       onChange={(event) => updateDraft(participant.memberId, 'strokes', event.target.value)}
+                      onFocus={() => setActiveEditingMemberId(participant.memberId)}
+                      onBlur={() => setActiveEditingMemberId((current) => current === participant.memberId ? null : current)}
                       className="mt-1 h-12 w-full rounded-2xl border border-slate-200 px-3 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                     />
                   </label>
 
-                  <label className="block">
-                    <span className="text-xs font-medium text-slate-500">스테이블포드 포인트</span>
+                  <label className="block min-w-0">
+                    <span className="block whitespace-nowrap text-[11px] font-medium text-slate-500 sm:text-xs">스테이블포드 포인트</span>
                     <input
                       name={`stablefordPoints:${participant.memberId}`}
                       type="number"
@@ -147,25 +186,20 @@ export function RoundScoreInputForm({ roundId, participants }: RoundScoreInputFo
                       max={100}
                       value={draft.stablefordPoints}
                       onChange={(event) => updateDraft(participant.memberId, 'stablefordPoints', event.target.value)}
-                      className="mt-1 h-12 w-full rounded-2xl border border-slate-200 px-3 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-                    />
-                  </label>
-
-                  <label className="block">
-                    <span className="text-xs font-medium text-slate-500">메모</span>
-                    <input
-                      name={`memo:${participant.memberId}`}
-                      type="text"
-                      value={draft.memo}
-                      onChange={(event) => updateDraft(participant.memberId, 'memo', event.target.value)}
+                      onFocus={() => setActiveEditingMemberId(participant.memberId)}
+                      onBlur={() => setActiveEditingMemberId((current) => current === participant.memberId ? null : current)}
                       className="mt-1 h-12 w-full rounded-2xl border border-slate-200 px-3 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                     />
                   </label>
                 </article>
               );
             })
+          ) : participants.length ? (
+            <div className="rounded-3xl border border-slate-100 px-5 py-12 text-center md:col-span-2 2xl:col-span-3">
+              <p className="text-sm font-semibold text-slate-700">모든 참가자의 스코어가 입력되었습니다.</p>
+            </div>
           ) : (
-            <div className="px-5 py-12 text-center">
+            <div className="rounded-3xl border border-slate-100 px-5 py-12 text-center md:col-span-2 2xl:col-span-3">
               <p className="text-sm font-semibold text-slate-700">아직 참가자가 없습니다.</p>
               <p className="mt-1 text-sm text-slate-500">참가자를 먼저 선택한 뒤 스코어를 입력하세요.</p>
             </div>
