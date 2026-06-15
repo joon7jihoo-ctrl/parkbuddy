@@ -278,3 +278,53 @@ html {
   }
 }
 
+
+
+/* ParkBuddy mobile dense + soft motion UX foundation */
+@layer components {
+  .pb-page-motion {
+    animation: pb-page-soft-enter 110ms ease-out both;
+  }
+
+  .pb-touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .pb-compact-card {
+    border-radius: 1.25rem;
+    padding: 0.875rem;
+  }
+
+  @media (min-width: 640px) {
+    .pb-compact-card {
+      border-radius: 1.5rem;
+      padding: 1rem;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .pb-page-motion {
+      animation: none;
+    }
+  }
+}
+
+@keyframes pb-page-soft-enter {
+  from {
+    opacity: 0.96;
+    transform: translateY(2px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pb-page-motion {
+    animation: none;
+  }
+}
+/* End ParkBuddy mobile dense + soft motion UX foundation */

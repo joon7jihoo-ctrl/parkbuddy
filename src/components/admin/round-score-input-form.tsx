@@ -95,20 +95,20 @@ export function RoundScoreInputForm({ roundId, participants, playDateLabel }: Ro
   }
 
   return (
-    <form action={saveRoundScoresAction} className="space-y-4 pb-24 sm:pb-0">
+    <form action={saveRoundScoresAction} className="space-y-3 pb-24 sm:space-y-4 sm:pb-0">
       <input type="hidden" name="roundId" value={roundId} />
 
-      <section data-round-detail-mobile-summary className="rounded-3xl bg-white p-3 text-center shadow-sm">
-        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 sm:items-stretch">
-          <div className="rounded-2xl bg-slate-50 px-2 py-3">
+      <section data-round-detail-mobile-summary className="sticky top-2 z-20 rounded-3xl border border-white/80 bg-white/95 p-2 text-center shadow-sm backdrop-blur md:static md:border-0 md:bg-white md:p-3 md:backdrop-blur-none">
+        <div className="grid grid-cols-3 gap-1.5 sm:gap-2 sm:grid-cols-4 sm:items-stretch">
+          <div className="rounded-2xl bg-slate-50 px-2 py-2.5 sm:py-3">
             <p className="text-xs font-bold text-slate-500">일자</p>
             <p className="mt-1 truncate text-base font-black text-slate-900 sm:text-lg">{playDateLabel}</p>
           </div>
-          <div className="rounded-2xl bg-slate-50 px-2 py-3">
+          <div className="rounded-2xl bg-slate-50 px-2 py-2.5 sm:py-3">
             <p className="text-xs font-bold text-slate-500">참가</p>
             <p className="mt-1 text-base font-black text-slate-900 sm:text-lg">{participants.length}명</p>
           </div>
-          <div className="rounded-2xl bg-emerald-50 px-2 py-3">
+          <div className="rounded-2xl bg-emerald-50 px-2 py-2.5 sm:py-3">
             <p className="text-xs font-bold text-emerald-700">입력</p>
             <p className="mt-1 text-base font-black text-emerald-900 sm:text-lg">{completedScoreCount}명</p>
           </div>
@@ -118,7 +118,7 @@ export function RoundScoreInputForm({ roundId, participants, playDateLabel }: Ro
             disabled={!participants.length}
             aria-pressed={showMissingOnly}
             className={[
-              'col-span-3 min-h-11 rounded-2xl px-4 text-sm font-bold shadow-sm transition disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 sm:col-span-1 sm:h-full sm:w-full',
+              'col-span-3 min-h-11 rounded-2xl px-4 text-sm font-bold shadow-sm transition disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 sm:col-span-1 sm:h-full sm:w-full sm:min-w-0',
               showMissingOnly
                 ? 'bg-amber-500 text-white hover:bg-amber-600'
                 : 'bg-slate-100 text-slate-700 hover:bg-slate-200',
@@ -146,7 +146,7 @@ export function RoundScoreInputForm({ roundId, participants, playDateLabel }: Ro
               const hasAnyScore = hasScore(draft);
 
               return (
-                <article key={participant.memberId} className={`${hasAnyScore ? 'border-emerald-100 bg-emerald-50/30' : 'border-amber-100 bg-amber-50/30'} grid grid-cols-[minmax(82px,0.85fr)_minmax(72px,0.75fr)_minmax(112px,1.15fr)] items-end gap-2 rounded-3xl border px-3 py-3 sm:grid-cols-[minmax(92px,0.85fr)_minmax(78px,0.75fr)_minmax(124px,1.2fr)] sm:gap-3 sm:px-5 sm:py-4`}>
+                <article key={participant.memberId} className={`${hasAnyScore ? 'border-emerald-100 bg-emerald-50/30' : 'border-amber-100 bg-amber-50/30'} grid grid-cols-[minmax(78px,0.9fr)_minmax(62px,0.62fr)_minmax(128px,1.38fr)] items-end gap-2 rounded-3xl border px-3 py-3 sm:grid-cols-[minmax(88px,0.9fr)_minmax(68px,0.62fr)_minmax(142px,1.42fr)] sm:gap-3 sm:px-5 sm:py-4`}>
                   <input type="hidden" name="memberId" value={participant.memberId} />
                   <input type="hidden" name={`memo:${participant.memberId}`} value={draft.memo} />
 
@@ -172,12 +172,12 @@ export function RoundScoreInputForm({ roundId, participants, playDateLabel }: Ro
                       onChange={(event) => updateDraft(participant.memberId, 'strokes', event.target.value)}
                       onFocus={() => setActiveEditingMemberId(participant.memberId)}
                       onBlur={() => setActiveEditingMemberId((current) => current === participant.memberId ? null : current)}
-                      className="mt-1 h-12 w-full rounded-2xl border border-slate-200 px-3 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                      className="mt-1 h-12 w-full min-w-0 rounded-2xl border border-slate-200 px-3 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                     />
                   </label>
 
                   <label className="block min-w-0">
-                    <span className="block whitespace-nowrap text-[11px] font-medium text-slate-500 sm:text-xs">스테이블포드 포인트</span>
+                    <span className="block whitespace-nowrap text-[10px] font-medium text-slate-500 sm:text-[11px]">스테이블포드 포인트</span>
                     <input
                       name={`stablefordPoints:${participant.memberId}`}
                       type="number"
@@ -188,7 +188,7 @@ export function RoundScoreInputForm({ roundId, participants, playDateLabel }: Ro
                       onChange={(event) => updateDraft(participant.memberId, 'stablefordPoints', event.target.value)}
                       onFocus={() => setActiveEditingMemberId(participant.memberId)}
                       onBlur={() => setActiveEditingMemberId((current) => current === participant.memberId ? null : current)}
-                      className="mt-1 h-12 w-full rounded-2xl border border-slate-200 px-3 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                      className="mt-1 h-12 w-full min-w-0 rounded-2xl border border-slate-200 px-3 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                     />
                   </label>
                 </article>
