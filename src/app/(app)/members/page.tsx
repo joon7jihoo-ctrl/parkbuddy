@@ -1,5 +1,10 @@
 import { createClient } from '@/lib/supabase/server';
 import { PublicMembersList } from '@/components/public-members-list';
+import {
+  buildOfficialScoreStatsByMember,
+  normalizeOfficialScoreRecords,
+  type RawRoundScoreRow,
+} from '@/lib/score-records';
 
 type Member = {
   id: string;
@@ -8,13 +13,6 @@ type Member = {
   handicap: number | null;
   joined_on: string | null;
   role: 'admin' | 'member';
-};
-
-type MemberScoreStat = {
-  member_id: string;
-  rounds_count: number | null;
-  avg_score: number | null;
-  best_score: number | null;
 };
 
 export default async function MembersPage() {
@@ -32,16 +30,34 @@ export default async function MembersPage() {
   const list = (members ?? []) as Member[];
   const memberIds = list.map((member) => member.id);
 
-  const { data: stats } = memberIds.length
+  const { data: scoreRows } = memberIds.length
     ? await supabase
-        .from('member_score_stats')
-        .select('member_id, rounds_count, avg_score, best_score')
+        .from('round_scores')
+        .select(
+          `
+          round_id,
+          member_id,
+          strokes,
+          stableford_points,
+          memo,
+          updated_at,
+          round:round_id (
+            id,
+            title,
+            course_name,
+            play_date,
+            played_on,
+            holes,
+            deleted_at,
+            club_id
+          )
+        `,
+        )
         .in('member_id', memberIds)
     : { data: [] };
 
-  const statsMap = new Map(
-    ((stats ?? []) as MemberScoreStat[]).map((stat) => [stat.member_id, stat]),
-  );
+  const officialRecords = normalizeOfficialScoreRecords((scoreRows ?? []) as unknown as RawRoundScoreRow[]);
+  const statsMap = buildOfficialScoreStatsByMember(officialRecords);
 
   const adminCount = list.filter((member) => member.role === 'admin').length;
   const memberCount = list.length - adminCount;

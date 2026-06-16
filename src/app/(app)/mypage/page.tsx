@@ -4,6 +4,12 @@ import { ScoreTrendChart } from '@/components/ScoreTrendChart';
 import { createClient } from '@/lib/supabase/server';
 import { formatKoreanPhoneNumber } from '@/lib/korean-search';
 import { formatKoreanDate, formatKoreanDateTime } from '@/lib/utils';
+import {
+  buildOfficialScoreStats,
+  getOfficialScoreTrend,
+  normalizeOfficialScoreRecords,
+  type RawRoundScoreRow,
+} from '@/lib/score-records';
 
 type Member = {
   id: string;
@@ -14,25 +20,6 @@ type Member = {
   role: 'admin' | 'member';
   club_id: string;
 };
-
-type MemberScoreStats = {
-  rounds_count: number | null;
-  avg_score: number | null;
-  best_score: number | null;
-};
-
-type RecentRoundTotal = {
-  round_id: string;
-  played_on: string;
-  course_name: string | null;
-  total_strokes: number | null;
-};
-
-type ScoreTrendPoint = {
-  played_on: string;
-  total_strokes: number | null;
-};
-
 
 type VoteStatus = 'attend' | 'absent' | 'maybe';
 type DisplayVoteStatus = 'attend' | 'absent';
@@ -161,24 +148,30 @@ export default async function MyPage() {
   }
 
   const currentMember = member as Member;
-  const [{ data: stats }, { data: recentRounds }, { data: trend }, { data: upcomingEvents }] = await Promise.all([
+  const [{ data: scoreRows }, { data: upcomingEvents }] = await Promise.all([
     supabase
-      .from('member_score_stats')
-      .select('rounds_count, avg_score, best_score')
-      .eq('member_id', currentMember.id)
-      .maybeSingle(),
-    supabase
-      .from('member_round_totals')
-      .select('round_id, played_on, course_name, total_strokes')
-      .eq('member_id', currentMember.id)
-      .order('played_on', { ascending: false })
-      .limit(5),
-    supabase
-      .from('member_round_totals')
-      .select('played_on, total_strokes')
-      .eq('member_id', currentMember.id)
-      .order('played_on', { ascending: true })
-      .limit(20),
+      .from('round_scores')
+      .select(
+        `
+        round_id,
+        member_id,
+        strokes,
+        stableford_points,
+        memo,
+        updated_at,
+        round:round_id (
+          id,
+          title,
+          course_name,
+          play_date,
+          played_on,
+          holes,
+          deleted_at,
+          club_id
+        )
+      `,
+      )
+      .eq('member_id', currentMember.id),
     supabase
       .from('events')
       .select('id, title, event_type, starts_at, course_name, max_participants, event_votes(member_id, status)')
@@ -188,11 +181,9 @@ export default async function MyPage() {
       .limit(3),
   ]);
 
-  const scoreStats = stats as MemberScoreStats | null;
-  const rounds = (recentRounds ?? []) as RecentRoundTotal[];
-  const trendData = ((trend ?? []) as ScoreTrendPoint[])
-    .filter((point): point is { played_on: string; total_strokes: number } => point.total_strokes !== null)
-    .map((point) => ({ played_on: point.played_on, total_strokes: point.total_strokes }));
+  const rounds = normalizeOfficialScoreRecords((scoreRows ?? []) as unknown as RawRoundScoreRow[], currentMember.club_id);
+  const scoreStats = buildOfficialScoreStats(rounds);
+  const trendData = getOfficialScoreTrend(rounds);
   const upcoming = (upcomingEvents ?? []) as UpcomingEvent[];
   const formattedPhone = formatKoreanPhoneNumber(currentMember.phone);
 
@@ -228,9 +219,9 @@ export default async function MyPage() {
       </section>
 
       <section className="grid grid-cols-3 gap-2.5">
-        <SummaryCard label="라운딩" value={scoreStats?.rounds_count ?? 0} />
-        <SummaryCard label="평균" value={scoreStats?.avg_score ?? '-'} />
-        <SummaryCard label="베스트" value={scoreStats?.best_score ?? '-'} accent />
+        <SummaryCard label="라운딩" value={scoreStats.rounds_count} />
+        <SummaryCard label="평균" value={scoreStats.avg_score ?? '-'} />
+        <SummaryCard label="베스트" value={scoreStats.best_score ?? '-'} accent />
       </section>
 
       <section className="rounded-[28px] border border-slate-200 bg-slate-50/70 p-3 shadow-sm md:p-4">
@@ -276,7 +267,7 @@ export default async function MyPage() {
               <Link key={round.round_id} href={`/scores/${round.round_id}`} className="flex items-center justify-between gap-3 py-3">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-slate-900">
-                    {formatKoreanDate(round.played_on)} · {round.course_name ?? '코스 미정'}
+                    {formatKoreanDate(round.play_date ?? round.updated_at ?? '')} · {round.course_name ?? '코스 미정'}
                   </p>
                   <p className="mt-1 text-xs text-slate-500">상세 스코어 보기</p>
                 </div>

@@ -1,7 +1,9 @@
+import Link from 'next/link';
 import { TopBar } from '@/components/TopBar';
 import { EmptyState } from '@/components/EmptyState';
 import { formatKoreanDateTime } from '@/lib/utils';
 import { requireCurrentMember } from '@/server/auth';
+import { createRoundFromEventAction } from '@/server/actions/event-rounds';
 import { VoteButtons, VoteTotalButton, type VoteListMember } from './VoteButtons';
 
 type VoteStatus = 'attend' | 'absent' | 'maybe';
@@ -28,6 +30,15 @@ type EventRow = {
   event_votes: EventVote[] | null;
 };
 
+type LinkedRoundRow = {
+  id: string;
+  event_id: string | null;
+};
+
+type SchedulePageProps = {
+  searchParams: Promise<{ eventRoundError?: string }>;
+};
+
 type ScheduleSummary = {
   total: number;
   myAttend: number;
@@ -50,6 +61,27 @@ function getEventTypeBadge(eventType: string | null) {
   }
 
   return { label: '정기 라운딩', className: 'bg-emerald-50 text-emerald-700 ring-emerald-100' };
+}
+
+function getEventRoundErrorMessage(error?: string) {
+  switch (error) {
+    case 'auth_required':
+      return '로그인이 필요합니다.';
+    case 'admin_required':
+      return '운영진만 라운딩을 생성할 수 있습니다.';
+    case 'event_not_found':
+      return '일정을 찾을 수 없습니다.';
+    case 'no_attendees':
+      return '참석으로 투표한 회원이 있어야 라운딩을 생성할 수 있습니다.';
+    case 'rpc_missing':
+      return 'Supabase 라운딩 생성 함수가 없습니다. 최신 SQL을 먼저 실행해 주세요.';
+    case 'permission_denied':
+      return '라운딩 생성 권한이 없습니다.';
+    case 'unknown':
+      return '라운딩 생성 중 알 수 없는 오류가 발생했습니다.';
+    default:
+      return null;
+  }
 }
 
 function getVoteMemberName(vote: EventVote) {
@@ -86,7 +118,42 @@ function ScheduleSummaryBar({ summary }: { summary: ScheduleSummary }) {
   );
 }
 
-export default async function SchedulePage() {
+function EventRoundAction({
+  eventId,
+  linkedRoundId,
+  attendCount,
+}: {
+  eventId: string;
+  linkedRoundId?: string;
+  attendCount: number;
+}) {
+  if (linkedRoundId) {
+    return (
+      <Link
+        href={`/admin/rounds/${linkedRoundId}/participants`}
+        className="flex min-h-11 items-center justify-center rounded-2xl bg-slate-900 px-4 py-2 text-sm font-extrabold text-white shadow-sm transition active:scale-[0.99]"
+      >
+        생성된 라운딩 보기
+      </Link>
+    );
+  }
+
+  return (
+    <form action={createRoundFromEventAction}>
+      <input type="hidden" name="eventId" value={eventId} />
+      <button
+        type="submit"
+        disabled={attendCount <= 0}
+        className="flex min-h-11 w-full items-center justify-center rounded-2xl bg-emerald-600 px-4 py-2 text-sm font-extrabold text-white shadow-sm transition active:scale-[0.99] disabled:bg-slate-200 disabled:text-slate-500"
+      >
+        {attendCount > 0 ? '참석자 기준 라운딩 생성' : '참석자 필요'}
+      </button>
+    </form>
+  );
+}
+
+export default async function SchedulePage({ searchParams }: SchedulePageProps) {
+  const params = await searchParams;
   const { supabase, member } = await requireCurrentMember();
 
   const [{ data, error }, { count: activeMemberCount, error: countError }] = await Promise.all([
@@ -107,7 +174,26 @@ export default async function SchedulePage() {
   if (countError) throw new Error(countError.message);
 
   const events = (data ?? []) as EventRow[];
+  const eventIds = events.map((event) => event.id);
+  const { data: linkedRoundRows, error: linkedRoundsError } = eventIds.length
+    ? await supabase
+        .from('rounds')
+        .select('id, event_id')
+        .eq('club_id', member.club_id)
+        .in('event_id', eventIds)
+    : { data: [], error: null };
+
+  if (linkedRoundsError && linkedRoundsError.code !== '42P01') {
+    throw new Error(linkedRoundsError.message);
+  }
+
+  const linkedRoundByEventId = new Map(
+    ((linkedRoundRows ?? []) as LinkedRoundRow[])
+      .filter((round) => round.event_id)
+      .map((round) => [round.event_id as string, round.id])
+  );
   const totalMembers = Math.max(activeMemberCount ?? 0, 1);
+  const eventRoundErrorMessage = getEventRoundErrorMessage(params.eventRoundError);
   const scheduleSummary = events.reduce<ScheduleSummary>(
     (summary, event) => {
       const myStatus = normalizeVoteStatus(event.event_votes?.find((vote) => vote.member_id === member.id)?.status ?? null);
@@ -129,6 +215,12 @@ export default async function SchedulePage() {
         action={member.role === 'admin' ? { href: '/admin/events/new', label: '일정 등록' } : undefined}
       />
 
+      {eventRoundErrorMessage ? (
+        <section className="rounded-3xl border border-red-200 bg-red-50 p-4 text-sm font-bold leading-6 text-red-700">
+          {eventRoundErrorMessage}
+        </section>
+      ) : null}
+
       {events.length ? (
         <>
           <ScheduleSummaryBar summary={scheduleSummary} />
@@ -141,6 +233,7 @@ export default async function SchedulePage() {
               const allVoters = [...attendVoters, ...absentVoters];
               const myStatus = normalizeVoteStatus(votes.find((vote) => vote.member_id === member.id)?.status ?? null);
               const typeBadge = getEventTypeBadge(event.event_type);
+              const linkedRoundId = linkedRoundByEventId.get(event.id);
 
               return (
                 <article key={event.id} className="rounded-[24px] border border-slate-200 bg-white p-3 shadow-sm md:p-4">
@@ -170,6 +263,12 @@ export default async function SchedulePage() {
                       totalMembers={totalMembers}
                     />
                   </div>
+
+                  {member.role === 'admin' ? (
+                    <div className="mt-2">
+                      <EventRoundAction eventId={event.id} linkedRoundId={linkedRoundId} attendCount={attendVoters.length} />
+                    </div>
+                  ) : null}
 
                   {event.memo ? (
                     <details className="mt-2 rounded-2xl bg-slate-50 px-3 py-2 text-sm text-slate-600">
