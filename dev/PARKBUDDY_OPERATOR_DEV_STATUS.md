@@ -1,23 +1,12 @@
-# PARKBUDDY_OPERATOR_DEV_STATUS
+# ParkBuddy Operator Dev Status
 
-## Latest Update
+## Latest update
 
-- Hotfix: Kakao OAuth redirect URL stabilization.
-- Kakao login button now builds an absolute `/auth/callback` URL from `window.location.origin`.
-- OAuth redirect is assigned explicitly from the Supabase returned URL to reduce browser/Supabase redirect ambiguity.
+- Added event-to-round create review UX on `/schedule`.
+- Operators now see attend/absent/pending counts before creating a round from an event.
+- Existing linked round CTA and no-attendee disabled state remain intact.
 
-## Verify
+## Next recommended step
 
-```powershell
-npm run verify
-npm run dev
-```
-
-Check:
-
-```text
-http://localhost:3000/login
-https://parkbuddy-five.vercel.app/login
-```
-
-The callback must return to `/auth/callback`, not to the Supabase project domain path.
+- Verify the flow on mobile after deployment.
+- Then continue with event-to-round creation polish or return to mobile dense UX refinements.

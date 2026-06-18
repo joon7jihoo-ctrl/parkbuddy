@@ -122,11 +122,19 @@ function EventRoundAction({
   eventId,
   linkedRoundId,
   attendCount,
+  absentCount,
+  totalVotedCount,
+  totalMembers,
 }: {
   eventId: string;
   linkedRoundId?: string;
   attendCount: number;
+  absentCount: number;
+  totalVotedCount: number;
+  totalMembers: number;
 }) {
+  const pendingCount = Math.max(totalMembers - totalVotedCount, 0);
+
   if (linkedRoundId) {
     return (
       <Link
@@ -138,17 +146,56 @@ function EventRoundAction({
     );
   }
 
+  if (attendCount <= 0) {
+    return (
+      <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5">
+        <p className="text-sm font-extrabold text-slate-500">참석자 필요</p>
+        <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">
+          참석으로 투표한 회원이 있어야 라운딩을 생성할 수 있습니다.
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <form action={createRoundFromEventAction}>
-      <input type="hidden" name="eventId" value={eventId} />
-      <button
-        type="submit"
-        disabled={attendCount <= 0}
-        className="flex min-h-11 w-full items-center justify-center rounded-2xl bg-emerald-600 px-4 py-2 text-sm font-extrabold text-white shadow-sm transition active:scale-[0.99] disabled:bg-slate-200 disabled:text-slate-500"
-      >
-        {attendCount > 0 ? '참석자 기준 라운딩 생성' : '참석자 필요'}
-      </button>
-    </form>
+    <details className="group overflow-hidden rounded-2xl border border-emerald-200 bg-emerald-50">
+      <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-3 py-2 text-sm font-extrabold text-emerald-800 marker:hidden">
+        <span>참석자 기준 라운딩 생성</span>
+        <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-black text-emerald-700 ring-1 ring-emerald-100">
+          {attendCount}명
+        </span>
+      </summary>
+      <div className="border-t border-emerald-100 bg-white px-3 py-3">
+        <div className="grid grid-cols-3 gap-2 text-center">
+          <div className="rounded-2xl bg-emerald-50 px-2 py-2">
+            <p className="text-[11px] font-bold text-emerald-600">참가 추가</p>
+            <p className="mt-0.5 text-lg font-black leading-none text-emerald-800">{attendCount}</p>
+          </div>
+          <div className="rounded-2xl bg-rose-50 px-2 py-2">
+            <p className="text-[11px] font-bold text-rose-600">불참 제외</p>
+            <p className="mt-0.5 text-lg font-black leading-none text-rose-800">{absentCount}</p>
+          </div>
+          <div className="rounded-2xl bg-slate-50 px-2 py-2">
+            <p className="text-[11px] font-bold text-slate-500">미선택 제외</p>
+            <p className="mt-0.5 text-lg font-black leading-none text-slate-800">{pendingCount}</p>
+          </div>
+        </div>
+
+        <p className="mt-3 text-xs font-semibold leading-5 text-slate-500">
+          생성하면 참석 회원만 라운딩 참가자로 추가됩니다. 이미 생성된 일정은 중복 생성되지 않습니다.
+        </p>
+
+        <form action={createRoundFromEventAction} className="mt-3">
+          <input type="hidden" name="eventId" value={eventId} />
+          <button
+            type="submit"
+            className="flex min-h-11 w-full items-center justify-center rounded-2xl bg-emerald-600 px-4 py-2 text-sm font-extrabold text-white shadow-sm transition active:scale-[0.99]"
+          >
+            확인 후 라운딩 생성
+          </button>
+        </form>
+      </div>
+    </details>
   );
 }
 
@@ -266,7 +313,14 @@ export default async function SchedulePage({ searchParams }: SchedulePageProps) 
 
                   {member.role === 'admin' ? (
                     <div className="mt-2">
-                      <EventRoundAction eventId={event.id} linkedRoundId={linkedRoundId} attendCount={attendVoters.length} />
+                      <EventRoundAction
+                        eventId={event.id}
+                        linkedRoundId={linkedRoundId}
+                        attendCount={attendVoters.length}
+                        absentCount={absentVoters.length}
+                        totalVotedCount={allVoters.length}
+                        totalMembers={totalMembers}
+                      />
                     </div>
                   ) : null}
 
