@@ -147,8 +147,7 @@ export default async function AdminMembersPage({ searchParams }: AdminMembersPag
           <p className="text-sm font-semibold text-emerald-700">{params.created ? '회원이 등록되었습니다.' : '연결 코드가 재발급되었습니다.'}</p>
           <h2 className="mt-2 text-xl font-bold text-slate-900">{claimName} 회원 연결 코드</h2>
           <div className="mt-4 rounded-2xl bg-white p-4">
-            <p className="text-sm text-slate-500">회원에게 전달할 정보</p>
-            <dl className="mt-3 space-y-2 text-sm">
+            <dl className="space-y-2 text-sm">
               <div className="flex justify-between gap-4"><dt className="text-slate-500">이름</dt><dd className="font-semibold text-slate-900">{claimName}</dd></div>
               <div className="flex justify-between gap-4"><dt className="text-slate-500">연락처</dt><dd className="font-semibold text-slate-900">{formatKoreanPhoneNumber(claimPhone)}</dd></div>
               <div className="flex items-center justify-between gap-4"><dt className="text-slate-500">연결 코드</dt><dd className="flex items-center gap-2"><span className="font-mono text-lg font-bold text-emerald-700">{claimCode}</span><CopyButton value={claimCode} label="코드 복사" /></dd></div>
@@ -230,7 +229,6 @@ export default async function AdminMembersPage({ searchParams }: AdminMembersPag
         ) : (
           <div className="rounded-3xl bg-white px-5 py-10 text-center shadow-sm">
             <p className="text-sm font-semibold text-slate-700">표시할 회원이 없습니다.</p>
-            <p className="mt-1 text-sm text-slate-500">등록된 회원이 없습니다.</p>
           </div>
         )}
       </section>

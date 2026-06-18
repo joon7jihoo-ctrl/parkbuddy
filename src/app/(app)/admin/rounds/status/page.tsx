@@ -149,7 +149,7 @@ export default async function RoundStatusPage({ searchParams }: StatusPageProps)
         <div className="min-w-0">
           <p className="text-sm font-bold text-emerald-600">라운드 관리</p>
           <h1 className="mt-1 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">
-            상태별 라운드
+            상태별 라운드 보기
           </h1>
         </div>
 
@@ -195,9 +195,6 @@ export default async function RoundStatusPage({ searchParams }: StatusPageProps)
       <section className="overflow-hidden rounded-[2rem] bg-white shadow-sm ring-1 ring-slate-100">
         <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 sm:px-5">
           <h2 className="font-black text-slate-950">라운드 {typedRounds.length}건</h2>
-          <p className="hidden text-xs font-semibold text-slate-400 sm:block">
-            목록 화면과 동일한 카드 레이아웃을 사용합니다.
-          </p>
         </div>
 
         <div className="divide-y divide-slate-100">

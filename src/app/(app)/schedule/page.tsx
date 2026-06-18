@@ -150,9 +150,6 @@ function EventRoundAction({
     return (
       <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5">
         <p className="text-sm font-extrabold text-slate-500">참석자 필요</p>
-        <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">
-          참석으로 투표한 회원이 있어야 라운딩을 생성할 수 있습니다.
-        </p>
       </div>
     );
   }
@@ -180,10 +177,6 @@ function EventRoundAction({
             <p className="mt-0.5 text-lg font-black leading-none text-slate-800">{pendingCount}</p>
           </div>
         </div>
-
-        <p className="mt-3 text-xs font-semibold leading-5 text-slate-500">
-          생성하면 참석 회원만 라운딩 참가자로 추가됩니다. 이미 생성된 일정은 중복 생성되지 않습니다.
-        </p>
 
         <form action={createRoundFromEventAction} className="mt-3">
           <input type="hidden" name="eventId" value={eventId} />
@@ -258,6 +251,7 @@ export default async function SchedulePage({ searchParams }: SchedulePageProps) 
     <main className="mx-auto max-w-5xl space-y-3 px-4 py-4 pb-28 md:space-y-4 md:py-6">
       <TopBar
         title="일정"
+        description="다가오는 라운딩 참석 여부를 빠르게 선택하세요."
         action={member.role === 'admin' ? { href: '/admin/events/new', label: '일정 등록' } : undefined}
       />
 

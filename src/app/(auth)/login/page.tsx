@@ -203,9 +203,6 @@ export default async function LoginPage({
             <div>
               <p className="text-sm font-bold text-emerald-700">카카오 로그인이 안 될 때</p>
               <h2 className="mt-1 text-lg font-bold text-slate-900">초대 코드로 첫 접속</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-600">
-                운영진에게 받은 이름, 연락처, 초대 코드를 입력하면 이 기기에서 ParkBuddy를 시작할 수 있습니다.
-              </p>
             </div>
 
             <form action={startWithInviteCode} className="mt-4 space-y-3">
