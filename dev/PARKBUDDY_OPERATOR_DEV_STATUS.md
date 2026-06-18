@@ -1,33 +1,122 @@
 # ParkBuddy Operator Dev Status
 
-## 현재 작업
+## 현재 기준
 
-- 작업명: `PARKBUDDY_SCORE_RESULT_SIMPLE_UX_CLEANUP`
-- 목적: 스코어/결과 화면의 반복 설명 문구를 제거하고, 모바일에서 핵심 정보 위주로 보이도록 정리한다.
+- 기준일: 2026-06-18
+- 현재 단계: 운영 배포 전 안정화 / 모바일 Dense UX / 문구 단순화 정리
+- 현재 우선순위: 새 기능 추가보다 **운영자가 실제로 쓰면서 헷갈리지 않는 흐름**을 먼저 안정화한다.
+- 앱 코드 변경 여부: 이번 문서 정리 작업에서는 앱 코드를 변경하지 않는다.
 
-## 이번 변경 파일
+## 최근 완료된 큰 흐름
 
-- `src/app/(app)/scores/page.tsx`
-- `src/app/(app)/scores/[roundId]/page.tsx`
-- `src/app/(app)/mypage/page.tsx`
-- `src/app/(app)/admin/rounds/[id]/scores/page.tsx`
-- `src/app/(app)/admin/rounds/[id]/results/page.tsx`
-- `src/app/(app)/admin/rounds/[id]/results/print/page.tsx`
-- `src/components/admin/round-score-input-form.tsx`
-- `dev/PARKBUDDY_SCORE_RESULT_SIMPLE_UX_CLEANUP.md`
-- `dev/PARKBUDDY_OPERATOR_DEV_STATUS.md`
+1. **게시판 보안 강화**
+   - 비공개/공지/자유글 접근 정책 정리
+   - RLS, trigger, policy 재실행 충돌 대응
+   - 보안 검증 체크리스트 작성
 
-## 확인 필요
+2. **스코어 데이터 기준 통일**
+   - My Page, Scores, 최근 기록, 상세, 평균/베스트 기록을 `round_scores` 기준으로 통일
+   - 기존 `round_players`/`hole_scores` 기반 화면과 혼선 줄임
 
-1. `npm run verify`를 실행한다.
-2. `/scores`와 `/scores/[roundId]`에서 스코어 문구가 너무 불친절하지 않은지 확인한다.
-3. `/mypage` 최근 기록 영역에서 설명 없이도 자연스러운지 확인한다.
-4. `/admin/rounds/[id]/scores`에서 스코어 입력과 저장이 정상 동작하는지 확인한다.
-5. `/admin/rounds/[id]/results`에서 결과 요약, 상위 3명, 공유/인쇄, 계산 기준 영역이 정상 표시되는지 확인한다.
-6. `/admin/rounds/[id]/results/print`에서 인쇄 화면이 정상 표시되는지 확인한다.
+3. **일정 투표 → 라운딩 생성 연결**
+   - `events` / `event_votes`에서 참석자 기준으로 `rounds` / `round_participants` 생성
+   - 중복 생성 방지
+   - 생성 전 참석/불참/미선택 인원 확인 UX 추가
+   - 생성된 라운딩에서 연결된 일정 맥락 표시
 
-## 다음 후보 작업
+4. **로그인 가용성 보완**
+   - 카카오 모바일 데이터망 오류 대응 전략 수립
+   - 초대 코드 기반 첫 접속 경로 추가
+   - 운영자용 초대 코드 공유 UX 추가
+   - 카카오 OAuth redirect 안정화 핫픽스
+   - 패스키는 장기 방향으로 문서화하되, Supabase native passkey 제약으로 즉시 구현은 보류
 
-- 삭제/복구 라운드 화면의 문구 및 모바일 밀도 정리
-- 라운딩 월간 보기 화면의 문구 및 카드 밀도 정리
-- 패스키/초대 코드 인증 흐름 후속 설계
+5. **라운딩 관리 모바일 Dense UX**
+   - 라운딩 목록 compact 카드/필터 복구 및 정리
+   - 참가자 관리 화면 compact화
+   - 조 편성 화면 compact화
+   - 경기 방식 한글화 및 스마트 조 편성 초안 도입
+   - 스코어/결과 화면 문구와 카드 밀도 정리
+
+6. **심플한 UX 문구 정리**
+   - 홈, 게시판, 일정, 회원, 마이페이지, 스코어/결과 화면의 반복 설명 제거
+   - `ParkBuddy` 외 불필요한 영어 표기 정리
+   - “최근 공지”처럼 같은 화면을 다른 명칭으로 부르는 표현을 게시판 기준으로 정리
+
+## 현재 확인이 필요한 핵심 화면
+
+### 인증/접속
+
+- `/login`
+- `/login?invite=1`
+
+확인 항목:
+
+- 카카오 로그인 redirect가 `https://parkbuddy-five.vercel.app/auth/callback` 또는 `http://localhost:3000/auth/callback`으로 돌아오는지
+- 초대 코드 로그인 화면이 불필요하게 장황하지 않은지
+- Supabase Anonymous sign-ins가 켜져 있는지
+- Supabase Site URL / Redirect URL / Kakao Developers callback 설정이 맞는지
+
+### 일정/라운딩 연결
+
+- `/schedule`
+- `/admin/rounds`
+- `/admin/rounds/[id]/participants`
+- `/admin/rounds/[id]/pairings`
+- `/admin/rounds/[id]/scores`
+- `/admin/rounds/[id]/results`
+
+확인 항목:
+
+- 일정에서 라운딩 생성 전 참석/불참/미선택 수가 맞는지
+- 생성 후 “생성된 라운딩 보기”로 전환되는지
+- 생성된 라운딩에서 연결 일정 정보가 보이는지
+- 수동 생성 라운딩은 연결 일정 카드가 보이지 않는지
+
+### 스코어/기록
+
+- `/scores`
+- `/scores/[roundId]`
+- `/mypage`
+- `/admin/rounds/[id]/scores`
+- `/admin/rounds/[id]/results`
+- `/admin/rounds/[id]/results/print`
+
+확인 항목:
+
+- My Page, Scores, 최근 기록, 상세 기록이 같은 스코어 데이터를 기준으로 보이는지
+- `round_scores`에 입력한 기록이 사용자 화면에도 반영되는지
+- 계산 기준 접이식 영역이 필요한 경우에만 보이는지
+
+## 다음 개발 흐름 추천
+
+새 기능을 바로 추가하기보다 아래 순서로 안정화한다.
+
+1. **운영자 QA 체크리스트 고정**
+   - 주요 화면별 확인 항목을 문서화하고 배포 전 반복 점검 기준으로 사용한다.
+
+2. **모바일 실사용 화면 점검**
+   - 운영자 계정으로 모바일 Chrome에서 `/login`, `/schedule`, `/admin/rounds`, `/admin/rounds/[id]/pairings`, `/admin/rounds/[id]/scores`, `/admin/rounds/[id]/results`를 순서대로 확인한다.
+
+3. **조 편성 알고리즘 검증**
+   - 참가자 3~4명: 1조 정상
+   - 참가자 6명 이상: 여러 조 분산 확인
+   - 경기 형태 변경 시 조 편성이 다시 계산되는지 확인
+   - 저장 후 재진입 시 조 편성이 유지되는지 확인
+
+4. **문구/명칭 3차 점검**
+   - 화면에 꼭 필요하지 않은 설명이 남아 있는지 확인한다.
+   - 같은 기능이 여러 이름으로 불리는지 확인한다.
+
+5. **그 다음 기능 후보**
+   - 패스키는 운영 도메인 확정 후 재검토
+   - 팀/소속 데이터가 필요하면 회원 테이블 설계 후 청백전/포섬/포볼 팀 기반 조편성 고도화
+   - 삭제/복구 라운드, 월간 보기, 결과 공유 UX 추가 정리
+
+## 작업 원칙
+
+- 앱 코드를 변경하기 전에는 현재 화면과 데이터 흐름을 먼저 확인한다.
+- 한 번에 넓은 화면을 건드릴 때는 이전에 안정화한 UX가 원복되지 않도록 주의한다.
+- 회원 검색, 스코어 입력, 일정 투표처럼 안정화된 핵심 흐름은 요청 없이는 건드리지 않는다.
+- `npm run verify` 통과 후 커밋/푸시한다.
+- 배포 후 모바일 화면 캡처를 기준으로 다음 수정 여부를 판단한다.
