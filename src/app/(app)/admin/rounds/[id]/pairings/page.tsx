@@ -1,8 +1,9 @@
-﻿import Link from 'next/link';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireAdmin } from '@/lib/auth/require-member';
 import { DeletedRoundOperationBlocked } from '@/components/admin/deleted-round-operation-blocked';
 import { RoundPairingForm } from '@/components/admin/round-pairing-form';
+import { getParkBuddyGameMethodLabel } from '@/lib/round-game-labels';
 import { saveRoundPairingsAction } from './actions';
 
 type PairingsPageProps = {
@@ -30,6 +31,19 @@ type Participant = {
   id: string;
   name: string;
   handicap: number;
+  averageStrokes: number | null;
+  roundsCount: number;
+  teamNo: number | null;
+};
+
+type RoundParticipantRow = {
+  member_id: string;
+  team_no: number | null;
+};
+
+type RoundScoreRow = {
+  member_id: string;
+  strokes: number | null;
 };
 
 type RoundGroupMember = {
@@ -118,14 +132,19 @@ export default async function PairingsPage({
 
   const { data: participantRows, error: participantsError } = await supabase
     .from('round_participants')
-    .select('member_id')
+    .select('member_id, team_no')
     .eq('round_id', typedRound.id);
 
   if (participantsError) {
     throw new Error(participantsError.message);
   }
 
-  const memberIds = (participantRows ?? []).map((row) => String(row.member_id));
+  const typedParticipantRows = (participantRows ?? []) as RoundParticipantRow[];
+  const memberIds = typedParticipantRows.map((row) => String(row.member_id));
+  const teamNoByMemberId = typedParticipantRows.reduce<Record<string, number | null>>((acc, row) => {
+    acc[String(row.member_id)] = typeof row.team_no === 'number' ? row.team_no : null;
+    return acc;
+  }, {});
 
   const { data: members, error: membersError } = memberIds.length
     ? await supabase
@@ -141,6 +160,37 @@ export default async function PairingsPage({
   if (membersError) {
     throw new Error(membersError.message);
   }
+
+
+  const { data: scoreRows, error: scoreRowsError } = memberIds.length
+    ? await supabase
+        .from('round_scores')
+        .select('member_id, strokes')
+        .in('member_id', memberIds)
+        .not('strokes', 'is', null)
+    : { data: [], error: null };
+
+  if (scoreRowsError && scoreRowsError.code !== '42P01') {
+    throw new Error(scoreRowsError.message);
+  }
+
+  const scoreStatsByMemberId = ((scoreRows ?? []) as RoundScoreRow[]).reduce<
+    Record<string, { total: number; count: number }>
+  >((acc, row) => {
+    const memberId = String(row.member_id);
+    const strokes = Number(row.strokes ?? NaN);
+
+    if (!Number.isFinite(strokes)) {
+      return acc;
+    }
+
+    const current = acc[memberId] ?? { total: 0, count: 0 };
+    current.total += strokes;
+    current.count += 1;
+    acc[memberId] = current;
+
+    return acc;
+  }, {});
 
   const { data: existingRows, error: existingError } = await supabase
     .from('round_group_members')
@@ -159,15 +209,23 @@ export default async function PairingsPage({
   const existingAssignments = ((existingRows ?? []) as unknown as RoundGroupMember[])
     .filter((row) => row.round_groups?.group_no)
     .reduce<Record<string, number>>((acc, row) => {
-      acc[row.member_id] = Number(row.round_groups?.group_no ?? 1);
+      acc[row.member_id] = Math.max(0, Number(row.round_groups?.group_no ?? 1) - 1);
       return acc;
     }, {});
 
-  const participants = (members ?? []).map((row) => ({
-    id: String(row.id),
-    name: String(row.name),
-    handicap: Number(row.handicap ?? 0),
-  })) satisfies Participant[];
+  const participants = (members ?? []).map((row) => {
+    const memberId = String(row.id);
+    const scoreStats = scoreStatsByMemberId[memberId];
+
+    return {
+      id: memberId,
+      name: String(row.name),
+      handicap: Number(row.handicap ?? 0),
+      averageStrokes: scoreStats?.count ? scoreStats.total / scoreStats.count : null,
+      roundsCount: scoreStats?.count ?? 0,
+      teamNo: teamNoByMemberId[memberId] ?? null,
+    };
+  }) satisfies Participant[];
 
   const errorMessage = getErrorMessage(queryParams.error);
 
@@ -209,8 +267,8 @@ export default async function PairingsPage({
           <p className="mt-1 truncate text-xs font-bold text-slate-900">{formatDate(typedRound.play_date)}</p>
         </div>
         <div className="rounded-2xl bg-slate-50 px-2 py-2">
-          <p className="text-[11px] font-medium text-slate-500">경기</p>
-          <p className="mt-1 truncate text-xs font-bold text-slate-900">{typedRound.game_type ?? '-'}</p>
+          <p className="text-[11px] font-medium text-slate-500">경기 방식</p>
+          <p className="mt-1 truncate text-xs font-bold text-slate-900">{getParkBuddyGameMethodLabel(typedRound.game_type, typedRound.scoring_type)}</p>
         </div>
         <div className="rounded-2xl bg-emerald-50 px-2 py-2">
           <p className="text-[11px] font-medium text-emerald-700">참가</p>
