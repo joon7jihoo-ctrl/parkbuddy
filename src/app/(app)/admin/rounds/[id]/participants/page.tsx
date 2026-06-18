@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { LinkedEventContextCard } from '@/components/admin/linked-event-context-card';
 import { requireAdmin } from '@/lib/auth/require-member';
+import { getRoundLinkedEventContexts } from '@/lib/round-linked-event-context';
 import { updateRoundParticipantsAction } from './actions';
 import { ParticipantSelectionEnhancer } from '@/components/admin/participant-selection-enhancer';
 
@@ -22,6 +24,7 @@ type Round = {
   play_date: string | null;
   start_time: string | null;
   status: string;
+  event_id: string | null;
 };
 
 type Member = {
@@ -90,7 +93,8 @@ export default async function RoundParticipantsPage({
       course_name,
       play_date,
       start_time,
-      status
+      status,
+      event_id
     `,
     )
     .eq('id', routeParams.id)
@@ -141,21 +145,28 @@ export default async function RoundParticipantsPage({
     ),
   );
   const selectedCount = selectedMemberIds.size;
-  const errorMessage = getErrorMessage(queryParams.error);
   const currentRound = round as Round;
+  const linkedEventContexts = await getRoundLinkedEventContexts(
+    supabase,
+    currentMember.club_id,
+    [currentRound.event_id],
+  );
+  const linkedEventContext = currentRound.event_id ? linkedEventContexts.get(currentRound.event_id) : null;
+  const errorMessage = getErrorMessage(queryParams.error);
 
   return (
-    <main className="mx-auto max-w-7xl space-y-4 px-3 py-4 sm:px-4 sm:py-5">
-      <ParticipantSelectionEnhancer />
-      <header className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+    <main className="mx-auto max-w-7xl space-y-3 px-3 py-3 sm:space-y-4 sm:px-4 sm:py-5">
+      {linkedEventContext && <LinkedEventContextCard context={linkedEventContext} />}
+
+      <header className="grid gap-3 rounded-3xl bg-white p-4 shadow-sm lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
         <div>
-          <p className="text-sm font-semibold text-emerald-600">
+          <p className="text-xs font-semibold text-emerald-600 sm:text-sm">
             라운드 참가자
           </p>
-          <h1 className="mt-1 text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
-            {currentRound.title ?? '라운드'} 참가자 선택
+          <h1 className="mt-1 text-lg font-bold tracking-tight text-slate-900 sm:text-2xl">
+            {currentRound.title ?? '라운드'}
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-xs text-slate-500 sm:text-sm">
             {currentRound.course_name ?? '-'} · {formatDate(currentRound.play_date)} ·{' '}
             {formatTime(currentRound.start_time)}
           </p>
@@ -163,15 +174,15 @@ export default async function RoundParticipantsPage({
 
         <Link
           href="/admin/rounds"
-          className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700"
+          className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700"
         >
-          라운드 목록
+          목록
         </Link>
       </header>
 
 
       {/* 모바일/태블릿에서 라운드 맥락을 짧게 확인할 수 있는 압축 요약입니다. */}
-      <section data-round-detail-mobile-summary className="grid grid-cols-3 gap-2 rounded-3xl bg-white p-3 text-center shadow-sm sm:hidden">
+      <section data-round-detail-mobile-summary className="grid grid-cols-3 gap-2 rounded-3xl bg-white p-2.5 text-center shadow-sm sm:hidden">
         <div className="rounded-2xl bg-slate-50 px-2 py-2">
           <p className="text-[11px] font-medium text-slate-500">일자</p>
           <p className="mt-1 truncate text-xs font-bold text-slate-900">{formatDate(currentRound.play_date)}</p>
@@ -198,38 +209,41 @@ export default async function RoundParticipantsPage({
         </section>
       )}
 
-      <form action={updateRoundParticipantsAction} className="space-y-4 pb-24 sm:pb-0">
+      <form action={updateRoundParticipantsAction} className="space-y-3 pb-24 sm:space-y-4 sm:pb-0">
         <input type="hidden" name="roundId" value={currentRound.id} />
 
-        <section className="rounded-3xl bg-white p-4 shadow-sm sm:p-5">
+        <ParticipantSelectionEnhancer />
+
+        <section className="rounded-3xl bg-white p-3 shadow-sm sm:p-5">
           <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
             <div>
               <h2 className="font-bold text-slate-900">활성 회원</h2>
-              <p className="mt-1 text-sm text-slate-500">
-                참가할 회원을 선택하세요. 현재 {selectedCount}명 선택됨.
+              <p className="mt-1 text-xs text-slate-500 sm:text-sm">
+                참가할 회원을 선택하세요. 현재 <span data-selected-count-output>{selectedCount}</span>명 선택됨.
               </p>
             </div>
 
           </div>
 
-          <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-3 grid gap-2 sm:mt-4 sm:grid-cols-2 xl:grid-cols-3">
             {activeMembers.length ? (
               activeMembers.map((member) => (
                 <label
                   key={member.id}
-                  className="flex min-h-20 cursor-pointer items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-slate-50/70 px-3 py-3 transition hover:border-emerald-200 hover:bg-emerald-50/50"
+                  data-member-row
+                  className="flex min-h-[68px] cursor-pointer items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-slate-50/70 px-3 py-2.5 transition hover:border-emerald-200 hover:bg-emerald-50/50 sm:min-h-20 sm:py-3"
                 >
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-semibold text-slate-900">
+                      <p className="text-sm font-semibold text-slate-900 sm:text-base">
                         {member.name}
                       </p>
-                      <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">
+                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600 sm:py-1 sm:text-xs">
                         {member.role === 'admin' ? '운영진' : '회원'}
                       </span>
                     </div>
-                    <p className="mt-1 text-sm text-slate-500">
-                      연락처 {member.phone ?? '-'} · 핸디캡 {member.handicap ?? 0}
+                    <p className="mt-1 text-xs text-slate-500 sm:text-sm">
+                      {member.phone ?? '-'} · H {member.handicap ?? 0}
                     </p>
                   </div>
 
@@ -238,7 +252,7 @@ export default async function RoundParticipantsPage({
                     name="memberIds"
                     value={member.id}
                     defaultChecked={selectedMemberIds.has(member.id)}
-                    className="h-6 w-6 shrink-0 rounded border-slate-300 text-emerald-600"
+                    className="h-7 w-7 shrink-0 rounded border-slate-300 text-emerald-600"
                   />
                 </label>
               ))
@@ -260,7 +274,7 @@ export default async function RoundParticipantsPage({
             type="submit"
             className="h-12 w-full rounded-2xl bg-emerald-600 px-5 text-sm font-bold text-white"
           >
-            참가자 저장 · 선택 {selectedCount}명
+            참가자 저장 · 선택 <span data-selected-count-label>{selectedCount}명</span>
           </button>
         </div>
       </form>

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 /* eslint-disable react-hooks/exhaustive-deps */
 
@@ -38,6 +38,22 @@ function getMemberRow(input: HTMLInputElement) {
 }
 
 function updateSelectedCountText(selectedCount: number) {
+  const countOutputs = Array.from(
+    document.querySelectorAll<HTMLElement>('[data-selected-count-output]'),
+  );
+
+  for (const element of countOutputs) {
+    element.textContent = String(selectedCount);
+  }
+
+  const labelOutputs = Array.from(
+    document.querySelectorAll<HTMLElement>('[data-selected-count-label]'),
+  );
+
+  for (const element of labelOutputs) {
+    element.textContent = `${selectedCount}명`;
+  }
+
   const candidates = Array.from(
     document.querySelectorAll<HTMLElement>('p, span, div'),
   );
@@ -177,43 +193,49 @@ export function ParticipantSelectionEnhancer() {
     <section
       ref={rootRef}
       data-participant-selection-enhancer="true"
-      className="mb-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"
+      className="sticky top-2 z-20 mb-3 rounded-3xl border border-slate-200/80 bg-white/95 p-3 shadow-sm backdrop-blur sm:static sm:mb-4 sm:p-4"
     >
-      <div className="space-y-4">
-        <div>
-          <h2 className="text-sm font-bold text-slate-900">회원 검색</h2>
-          <p className="mt-1 text-sm text-slate-500">
-            이름, 연락처, 역할 기준으로 참가자를 빠르게 찾을 수 있습니다.
-          </p>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-bold text-slate-900">회원 검색</h2>
+            <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">
+              이름·연락처·역할로 빠르게 찾습니다.
+            </p>
+          </div>
+          <div className="rounded-2xl bg-emerald-50 px-3 py-2 text-right">
+            <p className="text-[11px] font-semibold text-emerald-700">선택</p>
+            <p className="text-sm font-black text-emerald-900">{selectedCount}명</p>
+          </div>
         </div>
 
         <input
           type="search"
           value={query}
           onChange={(event) => handleSearchChange(event.target.value)}
-          placeholder="이름으로 회원을 검색하세요"
-          className="h-14 w-full rounded-2xl border border-emerald-400 px-4 text-base text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+          placeholder="이름으로 회원 검색"
+          className="h-12 w-full rounded-2xl border border-emerald-300 px-4 text-base text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
         />
 
-        <div className="flex flex-wrap gap-2">
+        <div className="grid grid-cols-2 gap-2">
           <button
             type="button"
             onClick={handleSelectedOnlyToggle}
-            className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-bold text-slate-700"
+            className="min-h-11 rounded-2xl bg-slate-100 px-3 py-2 text-xs font-bold text-slate-700 sm:text-sm"
           >
-            {showSelectedOnly ? '전체 회원 보기' : '선택된 회원만 보기'}
+            {showSelectedOnly ? '전체 보기' : '선택만 보기'}
           </button>
 
           <button
             type="button"
             onClick={handleSelectToggle}
-            className="rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white"
+            className="min-h-11 rounded-2xl bg-emerald-600 px-3 py-2 text-xs font-bold text-white sm:text-sm"
           >
-            {allVisibleSelected ? '전체 선택 해제' : '전체 선택'}
+            {allVisibleSelected ? '표시 해제' : '표시 전체 선택'}
           </button>
         </div>
 
-        <p className="text-sm text-slate-500">
+        <p className="text-xs text-slate-500 sm:text-sm">
           전체 {totalCount}명 · 표시 {visibleCount}명 · 선택 {selectedCount}명
         </p>
       </div>
