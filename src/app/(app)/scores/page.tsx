@@ -56,17 +56,12 @@ export default async function ScoresPage() {
 
       <ScoreTrendChart data={trend} />
 
-      <section className="rounded-3xl bg-white p-5 shadow-sm">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="font-bold text-slate-900">최근 기록</h2>
-            <p className="mt-1 text-xs font-semibold text-slate-500">운영자가 입력한 내 라운딩 스코어입니다.</p>
-          </div>
-        </div>
-        <div className="mt-4 divide-y divide-slate-100">
+      <section className="rounded-3xl bg-white p-4 shadow-sm">
+        <h2 className="font-bold text-slate-900">최근 기록</h2>
+        <div className="mt-3 divide-y divide-slate-100">
           {recentRecords.length ? (
             recentRecords.map((record) => (
-              <Link key={record.round_id} href={`/scores/${record.round_id}`} className="block py-3">
+              <Link key={record.round_id} href={`/scores/${record.round_id}`} className="block py-2.5">
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
                     <p className="truncate font-semibold text-slate-900">{record.title}</p>
@@ -84,7 +79,7 @@ export default async function ScoresPage() {
               </Link>
             ))
           ) : (
-            <p className="py-3 text-sm text-slate-500">아직 입력된 스코어가 없습니다.</p>
+            <p className="py-3 text-sm text-slate-500">스코어가 없습니다.</p>
           )}
         </div>
       </section>

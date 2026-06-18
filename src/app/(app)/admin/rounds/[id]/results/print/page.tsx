@@ -281,7 +281,7 @@ export default async function RoundResultsPrintPage({ params }: PrintResultsPage
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 print:bg-white">
-            <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Top 3</p>
+            <p className="text-xs font-bold uppercase tracking-wide text-slate-500">상위 3명</p>
             <div className="mt-3 space-y-2">
               {podiumScores.length ? (
                 podiumScores.map((score) => (
@@ -346,7 +346,7 @@ export default async function RoundResultsPrintPage({ params }: PrintResultsPage
               ) : (
                 <tr>
                   <td colSpan={7} className="px-4 py-10 text-center text-slate-500">
-                    아직 입력된 스코어가 없습니다.
+                    스코어가 없습니다.
                   </td>
                 </tr>
               )}

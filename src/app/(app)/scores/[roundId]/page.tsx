@@ -59,21 +59,24 @@ export default async function RoundScorePage({ params }: { params: Promise<{ rou
         description={`${typedRound.course_name ?? '코스 미정'} · ${typedRound.holes ?? 18}홀`}
       />
 
-      <section className="rounded-3xl bg-white p-5 shadow-sm">
-        <p className="text-sm font-black text-emerald-600">내 스코어 기록</p>
-        <h2 className="mt-1 text-xl font-extrabold text-slate-950">{typedRound.title ?? '라운딩'}</h2>
-        <p className="mt-1 text-sm font-semibold text-slate-500">
-          {getRoundDate(typedRound) ? formatKoreanDate(getRoundDate(typedRound) ?? '') : '날짜 미정'} · {typedRound.course_name ?? '코스 미정'}
-        </p>
+      <section className="rounded-3xl bg-white p-4 shadow-sm">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="truncate text-lg font-extrabold text-slate-950">{typedRound.title ?? '라운딩'}</h2>
+            <p className="mt-1 text-sm font-semibold text-slate-500">
+              {getRoundDate(typedRound) ? formatKoreanDate(getRoundDate(typedRound) ?? '') : '날짜 미정'} · {typedRound.course_name ?? '코스 미정'}
+            </p>
+          </div>
+        </div>
 
         {hasScore ? (
           <>
-            <div className="mt-5 grid grid-cols-2 gap-3">
-              <article className="rounded-3xl bg-emerald-50 p-4 text-center ring-1 ring-emerald-100">
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <article className="rounded-3xl bg-emerald-50 p-3 text-center ring-1 ring-emerald-100">
                 <p className="text-xs font-black text-emerald-700">총 타수</p>
                 <p className="mt-1 text-3xl font-black text-emerald-700">{typedScore?.strokes ?? '-'}</p>
               </article>
-              <article className="rounded-3xl bg-slate-50 p-4 text-center ring-1 ring-slate-100">
+              <article className="rounded-3xl bg-slate-50 p-3 text-center ring-1 ring-slate-100">
                 <p className="text-xs font-black text-slate-500">스테이블포드</p>
                 <p className="mt-1 text-3xl font-black text-slate-950">{typedScore?.stableford_points ?? '-'}</p>
               </article>
@@ -87,7 +90,7 @@ export default async function RoundScorePage({ params }: { params: Promise<{ rou
           </>
         ) : (
           <div className="mt-5 rounded-3xl bg-slate-50 px-4 py-6 text-center text-sm font-semibold text-slate-500">
-            이 라운딩에 입력된 내 스코어가 없습니다.
+스코어가 없습니다.
           </div>
         )}
       </section>
@@ -96,7 +99,7 @@ export default async function RoundScorePage({ params }: { params: Promise<{ rou
         href="/scores"
         className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-emerald-600 px-4 text-sm font-black text-white shadow-sm transition active:scale-[0.99]"
       >
-        스코어 목록으로 돌아가기
+        목록
       </Link>
     </main>
   );

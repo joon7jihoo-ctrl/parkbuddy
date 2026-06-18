@@ -249,7 +249,7 @@ export default async function RoundResultsPage({ params }: ResultsPageProps) {
     `일시: ${formatDate(typedRound.play_date)}`,
     `장소: ${typedRound.course_name ?? '-'}`,
     `현재 1위: ${leader?.member?.name ?? '-'} ${leader?.displayScore ?? ''}`.trim(),
-    'Top 3:',
+    '상위 3명:',
     podiumSummary,
     `입력 완료: ${completedScoreCount}/${rankedScores.length}명 (${completionRate}%)`,
     missingScoreCount > 0 ? `미입력: ${missingScoreCount}명` : '모든 스코어 입력 완료',
@@ -289,7 +289,7 @@ export default async function RoundResultsPage({ params }: ResultsPageProps) {
       <section data-result-summary-ux className="rounded-3xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
         <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_260px] lg:items-start">
           <div>
-            <p className="text-xs font-bold uppercase tracking-wide text-emerald-700">결과 요약</p>
+            <p className="text-xs font-bold text-emerald-700">결과 요약</p>
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <h2 className="text-xl font-black text-emerald-950">
                 현재 1위 · {leader?.member?.name ?? '-'}
@@ -307,7 +307,7 @@ export default async function RoundResultsPage({ params }: ResultsPageProps) {
           </div>
 
           <div className="rounded-2xl bg-white/80 p-3">
-            <p className="text-xs font-bold uppercase tracking-wide text-emerald-700">Top 3</p>
+            <p className="text-xs font-bold text-emerald-700">상위 3명</p>
             <div className="mt-2 grid gap-1 text-sm text-emerald-950">
               {podiumScores.length ? (
                 podiumScores.map((score) => (
@@ -324,12 +324,11 @@ export default async function RoundResultsPage({ params }: ResultsPageProps) {
 
         <details className="mt-3 rounded-2xl border border-emerald-200 bg-white/80 p-3">
           <summary className="cursor-pointer text-sm font-bold text-emerald-900">
-            공유/인쇄 옵션 펼치기
+            공유/인쇄
           </summary>
           <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
             <div>
-              <p className="text-xs font-bold uppercase tracking-wide text-slate-500">복사될 공유 문구</p>
-              <p className="mt-2 whitespace-pre-line rounded-2xl bg-slate-50 p-3 text-sm leading-6 text-slate-700">
+              <p className="whitespace-pre-line rounded-2xl bg-slate-50 p-3 text-sm leading-6 text-slate-700">
                 {shareSummary}
               </p>
             </div>
@@ -350,14 +349,10 @@ export default async function RoundResultsPage({ params }: ResultsPageProps) {
         </details>
       </section>
 
-      <section className="rounded-3xl border border-blue-200 bg-blue-50 p-4 text-sm leading-6 text-blue-800">
-        {getCalculationNote(typedRound.scoring_type)}
-        {missingScoreCount > 0 && (
-          <p className="mt-2 font-semibold">
-            스코어 미입력 회원은 결과 순위에서 미입력으로 표시됩니다.
-          </p>
-        )}
-      </section>
+      <details className="rounded-3xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm leading-6 text-blue-800">
+        <summary className="cursor-pointer font-bold text-blue-900">계산 기준</summary>
+        <p className="mt-2">{getCalculationNote(typedRound.scoring_type)}</p>
+      </details>
 
       <section className="overflow-hidden rounded-3xl bg-white shadow-sm">
         <div className="border-b border-slate-100 px-4 py-3 sm:px-5 sm:py-4">
@@ -391,7 +386,7 @@ export default async function RoundResultsPage({ params }: ResultsPageProps) {
 
                 <div className="col-span-2 flex flex-row flex-wrap items-center justify-between gap-2 rounded-2xl bg-slate-50 px-3 py-2 sm:col-span-1 sm:flex-col sm:items-end sm:justify-center sm:bg-transparent sm:px-0 sm:py-0">
                   <span className="text-lg font-bold text-emerald-700 sm:text-xl">
-                    {score.hasScore ? score.displayScore : '스코어 미입력'}
+                    {score.hasScore ? score.displayScore : '미입력'}
                   </span>
                   <span className="text-sm text-slate-500">
                     총 타수 {score.grossScore}
@@ -405,10 +400,7 @@ export default async function RoundResultsPage({ params }: ResultsPageProps) {
           ) : (
             <div className="px-5 py-12 text-center">
               <p className="text-sm font-semibold text-slate-700">
-                아직 입력된 스코어가 없습니다.
-              </p>
-              <p className="mt-1 text-sm text-slate-500">
-                스코어 입력 화면에서 참가자별 스코어를 먼저 저장하세요.
+                스코어가 없습니다.
               </p>
             </div>
           )}

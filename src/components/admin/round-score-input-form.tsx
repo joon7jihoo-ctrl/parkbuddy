@@ -243,8 +243,7 @@ export function RoundScoreInputForm({ roundId, participants, playDateLabel }: Ro
             </div>
           ) : (
             <div className="rounded-3xl border border-slate-100 px-5 py-12 text-center md:col-span-2 2xl:col-span-3">
-              <p className="text-sm font-semibold text-slate-700">아직 참가자가 없습니다.</p>
-              <p className="mt-1 text-sm text-slate-500">참가자를 먼저 선택한 뒤 스코어를 입력하세요.</p>
+              <p className="text-sm font-semibold text-slate-700">참가자가 없습니다.</p>
             </div>
           )}
         </div>
@@ -256,7 +255,7 @@ export function RoundScoreInputForm({ roundId, participants, playDateLabel }: Ro
           disabled={!participants.length}
           className="h-12 w-full rounded-2xl bg-emerald-600 px-4 font-bold text-white shadow-sm disabled:cursor-not-allowed disabled:bg-slate-300"
         >
-          스코어 저장 · 완료 {completedScoreCount}/{participants.length}
+          저장 · 완료 {completedScoreCount}/{participants.length}
         </button>
       </div>
     </form>

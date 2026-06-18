@@ -252,7 +252,6 @@ export default async function MyPage() {
         <div className="flex items-center justify-between gap-3">
           <div>
             <h2 className="font-bold text-slate-950">최근 기록</h2>
-            <p className="mt-1 text-xs text-slate-500">최근 입력된 내 라운딩 스코어입니다.</p>
           </div>
           <Link href="/scores" className="shrink-0 text-sm font-bold text-emerald-700 underline-offset-4 hover:underline">
             전체 보기
@@ -275,7 +274,7 @@ export default async function MyPage() {
               </Link>
             ))
           ) : (
-            <p className="py-5 text-center text-sm text-slate-500">아직 입력된 스코어가 없습니다.</p>
+            <p className="py-5 text-center text-sm text-slate-500">스코어가 없습니다.</p>
           )}
         </div>
       </section>

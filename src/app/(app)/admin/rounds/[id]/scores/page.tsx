@@ -1,5 +1,7 @@
 import { notFound } from 'next/navigation';
+import { LinkedEventContextCard } from '@/components/admin/linked-event-context-card';
 import { requireAdmin } from '@/lib/auth/require-member';
+import { getRoundLinkedEventContexts } from '@/lib/round-linked-event-context';
 import { RoundScoreInputForm } from '@/components/admin/round-score-input-form';
 
 type ScoresPageProps = {
@@ -60,7 +62,7 @@ export default async function RoundScoresPage({ params, searchParams }: ScoresPa
 
   const { data: round, error: roundError } = await supabase
     .from('rounds')
-    .select('id, title, course_name, play_date, status, club_id')
+    .select('id, title, course_name, play_date, status, club_id, event_id')
     .eq('id', routeParams.id)
     .eq('club_id', member.club_id)
     .maybeSingle();
@@ -101,19 +103,23 @@ export default async function RoundScoresPage({ params, searchParams }: ScoresPa
       memo: score?.memo ?? null,
     };
   });
+  const linkedEventContexts = await getRoundLinkedEventContexts(
+    supabase,
+    member.club_id,
+    [round.event_id],
+  );
+  const linkedEventContext = round.event_id ? linkedEventContexts.get(round.event_id) : null;
   const errorMessage = getErrorMessage(queryParams.error);
 
   return (
     <main className="mx-auto max-w-7xl space-y-4 px-3 py-4 sm:px-4 sm:py-5">
-      <header className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
-        <div>
-          <p className="text-sm font-semibold text-emerald-600">스코어 관리</p>
-          <h1 className="mt-1 text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">스코어 입력</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            {round.title} · {round.course_name} · {formatDate(round.play_date)}
-          </p>
-        </div>
+      {linkedEventContext && <LinkedEventContextCard context={linkedEventContext} />}
 
+      <header>
+        <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">스코어 입력</h1>
+        <p className="mt-1 text-sm text-slate-500">
+          {round.title} · {round.course_name} · {formatDate(round.play_date)}
+        </p>
       </header>
 
       {queryParams.saved && (
