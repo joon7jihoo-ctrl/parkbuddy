@@ -6,7 +6,7 @@ type HomeMenuCardProps = {
   href: string;
   eyebrow: string;
   title: string;
-  description: string;
+  description?: string;
   accent?: 'emerald' | 'slate';
 };
 
@@ -29,9 +29,11 @@ function HomeMenuCard({ href, eyebrow, title, description, accent = 'slate' }: H
       <div className="mt-3 flex items-end justify-between gap-3">
         <div>
           <h2 className="text-lg font-extrabold tracking-tight">{title}</h2>
-          <p className={isPrimary ? 'mt-1 text-sm leading-5 text-emerald-50' : 'mt-1 text-sm leading-5 text-slate-500'}>
-            {description}
-          </p>
+          {description ? (
+            <p className={isPrimary ? 'mt-1 text-sm leading-5 text-emerald-50' : 'mt-1 text-sm leading-5 text-slate-500'}>
+              {description}
+            </p>
+          ) : null}
         </div>
         <span
           className={[
@@ -93,11 +95,8 @@ export default async function HomePage() {
       <header className="space-y-1">
         <p className="text-sm font-bold text-emerald-600">ParkBuddy</p>
         <h1 className="text-2xl font-extrabold tracking-tight text-slate-950">
-          {me.name}님, 필요한 메뉴를 바로 선택하세요
+          {me.name}님
         </h1>
-        <p className="text-sm leading-6 text-slate-500">
-          하단에는 홈 버튼만 두고, 주요 기능은 이 화면에서 빠르게 이동합니다.
-        </p>
       </header>
 
       <section className="grid gap-3 sm:grid-cols-3">
@@ -105,7 +104,6 @@ export default async function HomePage() {
           href={isAdmin ? '/admin/members' : '/members'}
           eyebrow={isAdmin ? '운영진 메뉴' : '회원 메뉴'}
           title="회원 목록"
-          description={isAdmin ? '회원 등록, 검색, 수정, 비활성화를 관리합니다.' : '동호회 회원 연락처와 정보를 확인합니다.'}
           accent="emerald"
         />
 
@@ -115,13 +113,11 @@ export default async function HomePage() {
               href="/admin/rounds"
               eyebrow="운영진 메뉴"
               title="라운딩 관리"
-              description="라운드 생성, 참가자, 조 편성, 스코어를 관리합니다."
             />
             <HomeMenuCard
               href="/admin/logs"
               eyebrow="운영진 메뉴"
               title="작업 관리"
-              description="운영자 작업 기록과 주요 변경 이력을 확인합니다."
             />
           </>
         ) : (
@@ -130,13 +126,11 @@ export default async function HomePage() {
               href="/schedule"
               eyebrow="회원 메뉴"
               title="일정"
-              description="다가오는 라운딩 일정과 참석 여부를 확인합니다."
             />
             <HomeMenuCard
               href="/scores"
               eyebrow="회원 메뉴"
               title="스코어"
-              description="내 최근 기록과 평균, 베스트 스코어를 확인합니다."
             />
           </>
         )}
@@ -148,13 +142,11 @@ export default async function HomePage() {
             href="/board"
             eyebrow="소식"
             title="게시판"
-            description="공지사항과 동호회 소식을 확인합니다."
           />
           <HomeMenuCard
             href="/mypage"
             eyebrow="내 정보"
             title="마이페이지"
-            description="내 회원 정보와 계정 연결 상태를 확인합니다."
           />
         </section>
       )}
@@ -172,12 +164,12 @@ export default async function HomePage() {
         />
         <HomeMenuCard
           href="/board"
-          eyebrow="최근 공지"
-          title={recentNotice?.title ?? '최근 공지'}
+          eyebrow="게시판"
+          title={recentNotice?.title ?? '게시판'}
           description={
             recentNotice
               ? new Date(recentNotice.created_at).toLocaleDateString('ko-KR')
-              : '최근 공지가 없습니다.'
+              : '게시글이 없습니다.'
           }
         />
       </section>

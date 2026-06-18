@@ -24,7 +24,7 @@ export default async function BoardPage() {
 
   return (
     <main className="space-y-5 pb-24">
-      <TopBar title="게시판" description="공지사항과 자유게시글을 확인합니다." action={{ href: '/board/new', label: '글쓰기' }} />
+      <TopBar title="게시판" action={{ href: '/board/new', label: '글쓰기' }} />
 
       <section className="grid grid-cols-4 gap-2.5">
         <article className="rounded-3xl bg-emerald-600 px-3 py-3 text-center text-white shadow-sm">
@@ -60,12 +60,11 @@ export default async function BoardPage() {
 
               <h2 className="mt-2 line-clamp-1 text-base font-bold text-slate-950">{post.title}</h2>
               <p className="mt-1 line-clamp-2 text-sm leading-5 text-slate-600">{post.content}</p>
-              <p className="mt-2 text-xs font-medium text-slate-400">자세히 보기</p>
             </Link>
           ))}
         </section>
       ) : (
-        <EmptyState title="게시글이 없습니다" description="첫 공지나 자유게시글을 작성해 보세요." />
+        <EmptyState title="게시글이 없습니다" />
       )}
     </main>
   );

@@ -9,13 +9,13 @@ export default async function NewPostPage() {
 
   return (
     <main className="space-y-5 pb-24">
-      <TopBar title="글쓰기" description="공지와 자유게시글을 작성합니다." />
+      <TopBar title="글쓰기" />
       <form action={createPost} className="space-y-4 rounded-[30px] bg-white p-5 shadow-sm">
         <label className="block text-sm font-semibold text-slate-700">
           게시판 유형
           <select name="post_type" defaultValue="free" className="mt-2 h-12 w-full rounded-2xl border border-slate-200 px-4 outline-none focus:ring-2 focus:ring-emerald-500">
-            <option value="free">자유게시판</option>
-            {member.role === 'admin' ? <option value="notice">공지사항</option> : null}
+            <option value="free">자유글</option>
+            {member.role === 'admin' ? <option value="notice">공지</option> : null}
           </select>
         </label>
         <label className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
