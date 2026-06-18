@@ -46,7 +46,7 @@ export default async function ScoresPage() {
 
   return (
     <main className="space-y-5">
-      <TopBar title="스코어" description={`${member.name}님의 라운딩 기록입니다.`} />
+      <TopBar title="스코어" />
 
       <section className="grid grid-cols-3 gap-3">
         <StatCard label="라운딩" value={stats.rounds_count} />

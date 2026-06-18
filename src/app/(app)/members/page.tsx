@@ -78,7 +78,6 @@ export default async function MembersPage() {
       <header>
         <p className="text-sm font-semibold text-emerald-600">회원 목록</p>
         <h1 className="mt-1 text-2xl font-bold text-slate-900">함께하는 회원</h1>
-        <p className="mt-1 text-sm text-slate-500">동호회 회원 연락처와 기본 정보를 확인합니다.</p>
       </header>
 
       <section className="grid grid-cols-3 gap-2 sm:gap-2.5">

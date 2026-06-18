@@ -1,8 +1,7 @@
 import Link from 'next/link';
 import { ConfirmSubmitButton } from '@/components/confirm-submit-button';
-import { LinkedEventInlineBadge } from '@/components/admin/linked-event-context-card';
 import { requireAdmin } from '@/lib/auth/require-member';
-import { getRoundLinkedEventContexts } from '@/lib/round-linked-event-context';
+import { getParkBuddyGameMethodLabel } from '@/lib/round-game-labels';
 import { updateRoundStatusAction, duplicateRoundAction, adminSoftDeleteRoundAction } from './actions';
 
 type RoundStatus = 'scheduled' | 'completed' | 'cancelled';
@@ -23,7 +22,6 @@ type Round = {
   game_type: string | null;
   scoring_type: string | null;
   created_at: string;
-  event_id: string | null;
 };
 
 type RoundParticipant = { round_id: string };
@@ -62,17 +60,6 @@ function getStatusClassName(status: Round['status']) {
   }
 }
 
-function getScoringTypeLabel(value?: string | null) {
-  switch (value) {
-    case 'stroke': return '스트로크';
-    case 'new_peoria': return '신페리오';
-    case 'match':
-    case 'match_play': return '매치 플레이';
-    case 'stableford': return '스테이블포드';
-    default: return '미지정';
-  }
-}
-
 function formatDate(value?: string | null) {
   return value ? new Date(value + 'T00:00:00').toLocaleDateString('ko-KR') : '-';
 }
@@ -99,8 +86,8 @@ function StatusCard({ href, label, value, active }: { href: string; label: strin
           : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50',
       ].join(' ')}
     >
-      <p className={['text-[11px] font-bold md:text-xs', active ? 'text-emerald-50' : 'text-slate-500'].join(' ')}>{label}</p>
-      <p className="mt-0.5 text-lg font-black leading-none md:text-xl">{value}</p>
+      <p className={['text-[11px] font-extrabold md:text-xs', active ? 'text-emerald-50' : 'text-slate-500'].join(' ')}>{label}</p>
+      <p className="mt-0.5 text-lg font-black md:mt-1 md:text-xl">{value}</p>
     </Link>
   );
 }
@@ -112,7 +99,7 @@ export default async function AdminRoundsPage({ searchParams }: AdminRoundsPageP
 
   const { data, error } = await supabase
     .from('rounds')
-    .select('id, title, course_name, play_date, start_time, memo, status, game_type, scoring_type, created_at, event_id')
+    .select('id, title, course_name, play_date, start_time, memo, status, game_type, scoring_type, created_at')
     .eq('club_id', member.club_id)
     .is('deleted_at', null)
     .order('play_date', { ascending: false })
@@ -135,11 +122,6 @@ export default async function AdminRoundsPage({ searchParams }: AdminRoundsPageP
   }
 
   const participantCounts = countParticipantsByRound((participantsData ?? []) as RoundParticipant[]);
-  const linkedEventContexts = await getRoundLinkedEventContexts(
-    supabase,
-    member.club_id,
-    visibleRounds.map((round) => round.event_id),
-  );
   const errorMessage = getErrorMessage(params.error);
   const scheduledCount = rounds.filter((round) => round.status === 'scheduled').length;
   const completedCount = rounds.filter((round) => round.status === 'completed').length;
@@ -152,7 +134,6 @@ export default async function AdminRoundsPage({ searchParams }: AdminRoundsPageP
           <div className="min-w-0">
             <p className="text-xs font-extrabold text-emerald-600 md:text-sm">라운드 관리</p>
             <h1 className="mt-1 text-xl font-black leading-tight text-slate-900 md:text-2xl">라운드 목록</h1>
-            <p className="mt-1 text-xs font-semibold leading-5 text-slate-500 md:text-sm">일정, 참가자, 조 편성, 스코어를 빠르게 관리합니다.</p>
           </div>
           <Link href="/admin/rounds/new" className="hidden min-h-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-600 px-4 text-sm font-extrabold text-white shadow-sm transition active:scale-[0.99] sm:flex">
             라운드 생성
@@ -160,17 +141,17 @@ export default async function AdminRoundsPage({ searchParams }: AdminRoundsPageP
         </div>
       </header>
 
-      {params.created && <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5 text-sm font-semibold text-emerald-700">라운드가 생성되었습니다.</section>}
-      {params.statusUpdated && <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5 text-sm font-semibold text-emerald-700">라운드 상태가 변경되었습니다.</section>}
-      {params.roundDeleted && <section className="rounded-3xl border border-amber-200 bg-amber-50 p-5 text-sm font-semibold text-amber-800">라운드가 삭제된 라운드 목록으로 이동했습니다.</section>}
-      {errorMessage && <section className="rounded-3xl border border-red-200 bg-red-50 p-5 text-sm leading-6 text-red-700">{errorMessage}</section>}
+      {params.created && <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-700 md:p-5">라운드가 생성되었습니다.</section>}
+      {params.statusUpdated && <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-700 md:p-5">라운드 상태가 변경되었습니다.</section>}
+      {params.roundDeleted && <section className="rounded-3xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-800 md:p-5">라운드가 삭제된 라운드 목록으로 이동했습니다.</section>}
+      {errorMessage && <section className="rounded-3xl border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700 md:p-5">{errorMessage}</section>}
 
       <section className="sticky top-0 z-20 -mx-4 border-y border-slate-200 bg-slate-50/95 px-4 py-2 backdrop-blur md:static md:mx-0 md:border-0 md:bg-transparent md:px-0 md:py-0 md:backdrop-blur-none">
         <div className="grid grid-cols-4 gap-2 sm:gap-3">
-        <StatusCard href="/admin/rounds" label="전체" value={rounds.length} active={statusFilter === 'all'} />
-        <StatusCard href="/admin/rounds?status=scheduled" label="예정" value={scheduledCount} active={statusFilter === 'scheduled'} />
-        <StatusCard href="/admin/rounds?status=completed" label="완료" value={completedCount} active={statusFilter === 'completed'} />
-        <StatusCard href="/admin/rounds?status=cancelled" label="취소" value={cancelledCount} active={statusFilter === 'cancelled'} />
+          <StatusCard href="/admin/rounds" label="전체" value={rounds.length} active={statusFilter === 'all'} />
+          <StatusCard href="/admin/rounds?status=scheduled" label="예정" value={scheduledCount} active={statusFilter === 'scheduled'} />
+          <StatusCard href="/admin/rounds?status=completed" label="완료" value={completedCount} active={statusFilter === 'completed'} />
+          <StatusCard href="/admin/rounds?status=cancelled" label="취소" value={cancelledCount} active={statusFilter === 'cancelled'} />
         </div>
       </section>
 
@@ -178,7 +159,6 @@ export default async function AdminRoundsPage({ searchParams }: AdminRoundsPageP
         {visibleRounds.length ? (
           visibleRounds.map((round) => {
             const participantCount = participantCounts[round.id] ?? 0;
-            const linkedEventContext = round.event_id ? linkedEventContexts.get(round.event_id) : null;
             return (
               <article key={round.id} className="rounded-[24px] border border-slate-200 bg-white p-3 shadow-sm md:p-4">
                 <div className="flex flex-col gap-3 lg:grid lg:grid-cols-[1fr_340px] lg:gap-4">
@@ -193,10 +173,8 @@ export default async function AdminRoundsPage({ searchParams }: AdminRoundsPageP
                       <div className="rounded-2xl bg-slate-50 px-3 py-2"><dt className="text-[11px] font-bold text-slate-400">골프장</dt><dd className="mt-0.5 truncate font-bold text-slate-700">{round.course_name ?? '-'}</dd></div>
                       <div className="rounded-2xl bg-slate-50 px-3 py-2"><dt className="text-[11px] font-bold text-slate-400">날짜</dt><dd className="mt-0.5 font-bold text-slate-700">{formatDate(round.play_date)}</dd></div>
                       <div className="rounded-2xl bg-slate-50 px-3 py-2"><dt className="text-[11px] font-bold text-slate-400">시작 시간</dt><dd className="mt-0.5 font-bold text-slate-700">{formatTime(round.start_time)}</dd></div>
-                      <div className="rounded-2xl bg-slate-50 px-3 py-2"><dt className="text-[11px] font-bold text-slate-400">점수 계산</dt><dd className="mt-0.5 font-bold text-slate-700">{getScoringTypeLabel(round.scoring_type)}</dd></div>
+                      <div className="rounded-2xl bg-slate-50 px-3 py-2"><dt className="text-[11px] font-bold text-slate-400">경기 방식</dt><dd className="mt-0.5 truncate font-bold text-slate-700">{getParkBuddyGameMethodLabel(round.game_type, round.scoring_type)}</dd></div>
                     </dl>
-
-                    {linkedEventContext && <LinkedEventInlineBadge context={linkedEventContext} />}
 
                     {round.memo && <details className="mt-3 rounded-2xl bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-600"><summary className="cursor-pointer font-semibold text-slate-700">메모 보기</summary><p className="mt-2">{round.memo}</p></details>}
                   </div>
@@ -234,7 +212,6 @@ export default async function AdminRoundsPage({ searchParams }: AdminRoundsPageP
 
       <nav className="parkbuddy-sticky-cta">
         <div data-parkbuddy-sticky-cta="true" className="parkbuddy-sticky-cta__inner">
-
           <Link href="/admin/rounds/new" className="flex h-12 items-center justify-center rounded-2xl bg-emerald-600 text-sm font-bold text-white shadow-sm">라운드 생성</Link>
         </div>
       </nav>

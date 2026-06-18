@@ -258,7 +258,6 @@ export default async function SchedulePage({ searchParams }: SchedulePageProps) 
     <main className="mx-auto max-w-5xl space-y-3 px-4 py-4 pb-28 md:space-y-4 md:py-6">
       <TopBar
         title="일정"
-        description="다가오는 라운딩 참석 여부를 빠르게 선택하세요."
         action={member.role === 'admin' ? { href: '/admin/events/new', label: '일정 등록' } : undefined}
       />
 

@@ -172,11 +172,8 @@ export default async function LoginPage({
         <div className="flex size-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
           <ShieldCheck aria-hidden />
         </div>
-        <p className="mt-5 text-sm font-semibold text-emerald-600">ParkBuddy Secure</p>
+        <p className="mt-5 text-sm font-semibold text-emerald-600">ParkBuddy</p>
         <h1 className="mt-2 text-2xl font-bold text-slate-900">파크골프 동호회 관리</h1>
-        <p className="mt-3 text-sm leading-6 text-slate-600">
-          회원 정보, 일정, 스코어를 안전하게 관리합니다. 운영진이 등록한 회원만 내부 데이터에 접근할 수 있습니다.
-        </p>
 
         {errorMessage ? (
           <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700">

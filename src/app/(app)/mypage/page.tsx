@@ -192,7 +192,6 @@ export default async function MyPage() {
       <header>
         <p className="text-sm font-semibold text-emerald-600">마이페이지</p>
         <h1 className="mt-1 text-2xl font-bold text-slate-900">내 정보와 기록</h1>
-        <p className="mt-1 text-sm text-slate-500">내 기본 정보와 최근 라운딩 기록을 확인합니다.</p>
       </header>
 
       <section className="rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm">
@@ -228,7 +227,6 @@ export default async function MyPage() {
         <div className="mb-3 flex items-center justify-between gap-3">
           <div>
             <h2 className="text-sm font-extrabold text-slate-950 md:text-base">다가오는 내 일정</h2>
-            <p className="mt-0.5 text-xs font-semibold text-slate-500">참석 선택 상태를 빠르게 확인합니다.</p>
           </div>
           <Link href="/schedule" className="shrink-0 rounded-full bg-white px-3 py-2 text-xs font-black text-emerald-700 ring-1 ring-emerald-100 active:scale-[0.98]">
             일정 보기

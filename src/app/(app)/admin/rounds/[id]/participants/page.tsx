@@ -218,8 +218,8 @@ export default async function RoundParticipantsPage({
           <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
             <div>
               <h2 className="font-bold text-slate-900">활성 회원</h2>
-              <p className="mt-1 text-xs text-slate-500 sm:text-sm">
-                참가할 회원을 선택하세요. 현재 <span data-selected-count-output>{selectedCount}</span>명 선택됨.
+              <p className="mt-1 text-xs font-semibold text-slate-500 sm:text-sm">
+                선택 <span data-selected-count-output>{selectedCount}</span>명
               </p>
             </div>
 

@@ -237,9 +237,6 @@ export default async function AdminLogsPage() {
           <h1 className="mt-1 text-2xl font-bold text-slate-900">
             작업 이력
           </h1>
-          <p className="mt-1 text-sm leading-6 text-slate-500">
-            최근 관리자 작업 100건을 한글 설명으로 확인합니다.
-          </p>
         </div>
 
         <Link

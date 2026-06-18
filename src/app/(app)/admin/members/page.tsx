@@ -135,7 +135,6 @@ export default async function AdminMembersPage({ searchParams }: AdminMembersPag
       <header>
         <p className="text-sm font-semibold text-emerald-600">운영진 관리</p>
         <h1 className="mt-1 text-2xl font-bold text-slate-900">회원 관리</h1>
-        <p className="mt-1 text-sm text-slate-500">회원 등록, 검색, 수정, 비활성화, 복구를 관리합니다.</p>
       </header>
 
       {errorMessage ? <section className="rounded-3xl border border-red-200 bg-red-50 p-5 text-sm leading-6 text-red-700">{errorMessage}</section> : null}
@@ -207,7 +206,8 @@ export default async function AdminMembersPage({ searchParams }: AdminMembersPag
                         <ConfirmSubmitButton confirmMessage={member.name + ' 회원을 복구할까요?'} className="w-full rounded-2xl bg-emerald-50 px-5 py-3 text-sm font-semibold text-emerald-700 disabled:cursor-not-allowed disabled:opacity-60">복구</ConfirmSubmitButton>
                       </form>
                     ) : (
-                      <>
+                      <>
+
                         {!isLinked ? (
                           <form action={reissueClaimCodeAction}>
                             <input type="hidden" name="memberId" value={member.id} />
@@ -236,7 +236,8 @@ export default async function AdminMembersPage({ searchParams }: AdminMembersPag
       </section>
 
       <nav className="parkbuddy-sticky-cta">
-        <div data-parkbuddy-sticky-cta="true" className="parkbuddy-sticky-cta__inner">
+        <div data-parkbuddy-sticky-cta="true" className="parkbuddy-sticky-cta__inner">
+
           <Link href="/admin/members/new" className="flex h-12 items-center justify-center rounded-2xl bg-emerald-600 text-sm font-bold text-white shadow-sm">회원 등록</Link>
         </div>
       </nav>

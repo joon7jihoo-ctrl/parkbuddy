@@ -149,11 +149,8 @@ export default async function RoundStatusPage({ searchParams }: StatusPageProps)
         <div className="min-w-0">
           <p className="text-sm font-bold text-emerald-600">라운드 관리</p>
           <h1 className="mt-1 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">
-            상태별 라운드 보기
+            상태별 라운드
           </h1>
-          <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">
-            예정, 완료, 취소 상태별로 라운드를 빠르게 확인하고 운영 화면으로 이동합니다.
-          </p>
         </div>
 
         <nav className="mt-4 grid grid-cols-2 gap-2 text-sm sm:grid-cols-3 lg:mt-0 lg:min-w-[28rem]">
