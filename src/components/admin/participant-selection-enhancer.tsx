@@ -199,6 +199,9 @@ export function ParticipantSelectionEnhancer() {
         <div className="flex items-center justify-between gap-3">
           <div>
             <h2 className="text-sm font-bold text-slate-900">회원 검색</h2>
+            <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">
+              이름·연락처·역할로 빠르게 찾습니다.
+            </p>
           </div>
           <div className="rounded-2xl bg-emerald-50 px-3 py-2 text-right">
             <p className="text-[11px] font-semibold text-emerald-700">선택</p>

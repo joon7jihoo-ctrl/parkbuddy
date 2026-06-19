@@ -134,6 +134,7 @@ export default async function AdminRoundsPage({ searchParams }: AdminRoundsPageP
           <div className="min-w-0">
             <p className="text-xs font-extrabold text-emerald-600 md:text-sm">라운드 관리</p>
             <h1 className="mt-1 text-xl font-black leading-tight text-slate-900 md:text-2xl">라운드 목록</h1>
+            <p className="mt-1 text-xs font-semibold leading-5 text-slate-500 md:text-sm">일정, 참가자, 조 편성, 스코어를 빠르게 관리합니다.</p>
           </div>
           <Link href="/admin/rounds/new" className="hidden min-h-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-600 px-4 text-sm font-extrabold text-white shadow-sm transition active:scale-[0.99] sm:flex">
             라운드 생성
