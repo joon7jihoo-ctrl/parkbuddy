@@ -12,7 +12,8 @@ type RoundRow = {
   title: string | null;
   course_name: string | null;
   play_date: string | null;
-  status: string | null;
+  start_time: string | null;
+  status: 'scheduled' | 'completed' | 'cancelled' | null;
   game_type: string | null;
   scoring_type: string | null;
 };
@@ -73,6 +74,22 @@ function formatDate(value?: string | null) {
   });
 }
 
+function formatShortDate(value?: string | null) {
+  if (!value) {
+    return '-';
+  }
+
+  return new Date(`${value}T00:00:00`).toLocaleDateString('ko-KR');
+}
+
+function formatTime(value?: string | null) {
+  if (!value) {
+    return '-';
+  }
+
+  return value.slice(0, 5);
+}
+
 function getStatusLabel(value?: string | null) {
   switch (value) {
     case 'completed':
@@ -82,6 +99,17 @@ function getStatusLabel(value?: string | null) {
     case 'scheduled':
     default:
       return '예정';
+  }
+}
+
+function getStatusClassName(status?: string | null) {
+  switch (status) {
+    case 'completed':
+      return 'bg-blue-100 text-blue-700 ring-blue-200';
+    case 'cancelled':
+      return 'bg-red-100 text-red-700 ring-red-200';
+    default:
+      return 'bg-emerald-100 text-emerald-700 ring-emerald-200';
   }
 }
 
@@ -98,7 +126,7 @@ function getGameTypeLabel(value?: string | null) {
     case 'team_match':
       return '청백전';
     default:
-      return '경기방식 미정';
+      return '미정';
   }
 }
 
@@ -114,7 +142,7 @@ function getScoringTypeLabel(value?: string | null) {
     case 'stableford':
       return '스테이블포드';
     default:
-      return '점수방식 미정';
+      return '미정';
   }
 }
 
@@ -130,6 +158,18 @@ function groupRoundsByDate(rounds: RoundRow[]) {
 
     return acc;
   }, {});
+}
+
+function actionLinkClassName(variant: 'default' | 'dark' | 'green' = 'default') {
+  if (variant === 'dark') {
+    return 'inline-flex min-h-12 items-center justify-center rounded-2xl bg-slate-900 px-3 py-2 text-center text-sm font-bold text-white shadow-sm transition hover:bg-slate-800';
+  }
+
+  if (variant === 'green') {
+    return 'inline-flex min-h-12 items-center justify-center rounded-2xl bg-emerald-600 px-3 py-2 text-center text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700';
+  }
+
+  return 'inline-flex min-h-12 items-center justify-center rounded-2xl bg-slate-100 px-3 py-2 text-center text-sm font-bold text-slate-700 transition hover:bg-slate-200';
 }
 
 export default async function RoundCalendarPage({
@@ -151,12 +191,14 @@ export default async function RoundCalendarPage({
       title,
       course_name,
       play_date,
+      start_time,
       status,
       game_type,
       scoring_type
     `,
     )
     .eq('club_id', member.club_id)
+    .is('deleted_at', null)
     .gte('play_date', startDate)
     .lt('play_date', endDate)
     .order('play_date', { ascending: true })
@@ -171,128 +213,129 @@ export default async function RoundCalendarPage({
   const dateKeys = Object.keys(groupedRounds).sort();
 
   return (
-    <main className="mx-auto max-w-5xl space-y-5 px-4 py-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-sm font-semibold text-emerald-600">
-            라운드 일정
-          </p>
-          <h1 className="mt-1 text-2xl font-bold text-slate-900">
+    <main className="mx-auto max-w-7xl space-y-4 px-3 py-4 sm:px-4 sm:py-5 lg:px-6">
+      <header className="rounded-[2rem] bg-white/80 p-4 shadow-sm ring-1 ring-slate-100 sm:p-5 lg:flex lg:items-end lg:justify-between lg:gap-6">
+        <div className="min-w-0">
+          <p className="text-sm font-bold text-emerald-600">라운드 일정</p>
+          <h1 className="mt-1 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">
             {formatKoreanMonth(monthValue)}
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            월별로 라운드를 모아 보고, 참가자/조 편성/스코어/결과 화면으로 이동할 수 있습니다.
+          <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">
+            월별 라운드를 날짜별 카드로 확인하고, 필요한 운영 화면으로 바로 이동합니다.
           </p>
         </div>
 
-        <Link
-          href="/admin/rounds"
-          className="rounded-2xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700"
-        >
-          라운드 목록
-        </Link>
+        <nav className="mt-4 grid grid-cols-2 gap-2 text-sm sm:grid-cols-3 lg:mt-0 lg:min-w-[28rem]">
+          <Link href="/admin/rounds" className={actionLinkClassName()}>
+            라운드 목록
+          </Link>
+          <Link href="/admin/rounds/status" className={actionLinkClassName('dark')}>
+            상태별 보기
+          </Link>
+          <Link href="/admin/rounds/new" className={actionLinkClassName('green')}>
+            라운드 생성
+          </Link>
+        </nav>
       </header>
 
-      <nav className="flex items-center justify-between rounded-3xl bg-white p-4 shadow-sm">
-        <Link
-          href={`/admin/rounds/calendar?month=${previousMonth}`}
-          className="rounded-2xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700"
-        >
+      <nav className="grid grid-cols-3 items-center gap-2 rounded-[2rem] bg-white p-3 shadow-sm ring-1 ring-slate-100">
+        <Link href={`/admin/rounds/calendar?month=${previousMonth}`} className={actionLinkClassName()}>
           이전 달
         </Link>
-
-        <strong className="text-slate-900">{formatKoreanMonth(monthValue)}</strong>
-
-        <Link
-          href={`/admin/rounds/calendar?month=${nextMonth}`}
-          className="rounded-2xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700"
-        >
+        <strong className="text-center text-sm font-black text-slate-950 sm:text-base">
+          {formatKoreanMonth(monthValue)}
+        </strong>
+        <Link href={`/admin/rounds/calendar?month=${nextMonth}`} className={actionLinkClassName()}>
           다음 달
         </Link>
       </nav>
 
-      <section className="rounded-3xl bg-white p-5 shadow-sm">
-        <div className="flex items-center justify-between">
-          <h2 className="font-bold text-slate-900">월간 라운드</h2>
-          <span className="text-sm text-slate-500">{typedRounds.length}건</span>
+      <section className="overflow-hidden rounded-[2rem] bg-white shadow-sm ring-1 ring-slate-100">
+        <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 sm:px-5">
+          <h2 className="font-black text-slate-950">월간 라운드 {typedRounds.length}건</h2>
+          <p className="hidden text-xs font-semibold text-slate-400 sm:block">
+            날짜별로 묶고, 각 카드의 핵심 작업만 먼저 보여줍니다.
+          </p>
         </div>
 
         {dateKeys.length ? (
-          <div className="mt-4 space-y-5">
+          <div className="divide-y divide-slate-100">
             {dateKeys.map((dateKey) => (
-              <section key={dateKey} className="space-y-3">
-                <h3 className="text-sm font-bold text-slate-700">
+              <section key={dateKey} className="px-4 py-4 sm:px-5 lg:py-5">
+                <h3 className="mb-3 text-sm font-black text-slate-700">
                   {formatDate(dateKey === 'undated' ? null : dateKey)}
                 </h3>
 
                 <div className="space-y-3">
-                  {(groupedRounds[dateKey] ?? []).map((round) => (
-                    <article
-                      key={round.id}
-                      className="rounded-3xl border border-slate-100 p-4"
-                    >
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                        <div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h4 className="font-bold text-slate-900">
-                              {round.title ?? '라운드'}
-                            </h4>
-                            <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
-                              {getStatusLabel(round.status)}
-                            </span>
+                  {(groupedRounds[dateKey] ?? []).map((round) => {
+                    const roundTitle = round.title ?? '라운드';
+
+                    return (
+                      <article key={round.id} className="rounded-[1.75rem] border border-slate-100 bg-white p-3 shadow-sm sm:p-4">
+                        <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_17rem] xl:items-start">
+                          <div className="min-w-0 space-y-3">
+                            <div className="flex min-w-0 flex-wrap items-center gap-2">
+                              <h4 className="min-w-0 truncate text-lg font-black tracking-tight text-slate-950">
+                                {roundTitle}
+                              </h4>
+                              <span
+                                className={[
+                                  'inline-flex items-center rounded-full px-2.5 py-1 text-xs font-black ring-1',
+                                  getStatusClassName(round.status),
+                                ].join(' ')}
+                              >
+                                {getStatusLabel(round.status)}
+                              </span>
+                            </div>
+
+                            <dl className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
+                              <div className="rounded-2xl bg-slate-50 px-3 py-2">
+                                <dt className="text-[11px] font-bold text-slate-400">골프장</dt>
+                                <dd className="mt-1 truncate font-bold text-slate-800">{round.course_name ?? '-'}</dd>
+                              </div>
+                              <div className="rounded-2xl bg-slate-50 px-3 py-2">
+                                <dt className="text-[11px] font-bold text-slate-400">날짜</dt>
+                                <dd className="mt-1 font-bold text-slate-800">{formatShortDate(round.play_date)}</dd>
+                              </div>
+                              <div className="rounded-2xl bg-slate-50 px-3 py-2">
+                                <dt className="text-[11px] font-bold text-slate-400">시간</dt>
+                                <dd className="mt-1 font-bold text-slate-800">{formatTime(round.start_time)}</dd>
+                              </div>
+                              <div className="rounded-2xl bg-slate-50 px-3 py-2">
+                                <dt className="text-[11px] font-bold text-slate-400">경기/점수</dt>
+                                <dd className="mt-1 truncate font-bold text-slate-800">
+                                  {getGameTypeLabel(round.game_type)} · {getScoringTypeLabel(round.scoring_type)}
+                                </dd>
+                              </div>
+                            </dl>
                           </div>
 
-                          <p className="mt-1 text-sm text-slate-500">
-                            {round.course_name ?? '장소 미정'}
-                          </p>
-
-                          <p className="mt-2 text-sm text-slate-600">
-                            {getGameTypeLabel(round.game_type)} ·{' '}
-                            {getScoringTypeLabel(round.scoring_type)}
-                          </p>
+                          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-2 xl:rounded-3xl xl:bg-slate-50 xl:p-3">
+                            <Link href={`/admin/rounds/${round.id}/participants`} className={actionLinkClassName()}>
+                              참가자
+                            </Link>
+                            <Link href={`/admin/rounds/${round.id}/pairings`} className={actionLinkClassName()}>
+                              조 편성
+                            </Link>
+                            <Link href={`/admin/rounds/${round.id}/scores`} className={actionLinkClassName('dark')}>
+                              스코어
+                            </Link>
+                            <Link href={`/admin/rounds/${round.id}/results`} className={actionLinkClassName('green')}>
+                              결과
+                            </Link>
+                          </div>
                         </div>
-
-                        <div className="flex flex-wrap gap-2">
-                          <Link
-                            href={`/admin/rounds/${round.id}/participants`}
-                            className="rounded-2xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700"
-                          >
-                            참가자
-                          </Link>
-                          <Link
-                            href={`/admin/rounds/${round.id}/pairings`}
-                            className="rounded-2xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700"
-                          >
-                            조 편성
-                          </Link>
-                          <Link
-                            href={`/admin/rounds/${round.id}/scores`}
-                            className="rounded-2xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700"
-                          >
-                            스코어
-                          </Link>
-                          <Link
-                            href={`/admin/rounds/${round.id}/results`}
-                            className="rounded-2xl bg-emerald-600 px-3 py-2 text-sm font-semibold text-white"
-                          >
-                            결과
-                          </Link>
-                        </div>
-                      </div>
-                    </article>
-                  ))}
+                      </article>
+                    );
+                  })}
                 </div>
               </section>
             ))}
           </div>
         ) : (
-          <div className="mt-4 rounded-3xl border border-dashed border-slate-200 p-8 text-center">
-            <p className="font-semibold text-slate-700">
-              이 달에 등록된 라운드가 없습니다.
-            </p>
-            <p className="mt-1 text-sm text-slate-500">
-              라운드 목록에서 새 라운드를 등록해 주세요.
-            </p>
+          <div className="px-5 py-12 text-center">
+            <p className="font-bold text-slate-700">이 달에 등록된 라운드가 없습니다.</p>
+            <p className="mt-1 text-sm text-slate-500">라운드 목록에서 새 라운드를 등록해 주세요.</p>
           </div>
         )}
       </section>

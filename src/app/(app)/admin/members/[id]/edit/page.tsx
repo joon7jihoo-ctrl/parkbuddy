@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireAdmin } from '@/lib/auth/require-member';
+import { SubmitButton } from '@/components/SubmitButton';
+import { formatKoreanPhoneNumber } from '@/lib/korean-search';
 import { updateMemberAction } from '../../actions';
 
 type EditMemberPageProps = {
@@ -82,110 +84,93 @@ export default async function EditMemberPage({
   const errorMessage = getErrorMessage(queryParams.error);
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-xl items-center px-4 py-6">
-      <section className="w-full rounded-3xl bg-white p-6 shadow-sm">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-sm font-semibold text-emerald-600">
-              운영진 관리
-            </p>
-            <h1 className="mt-1 text-2xl font-bold text-slate-900">
-              회원 수정
-            </h1>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              회원의 이름, 연락처, 핸디캡, 역할을 수정합니다.
-            </p>
-          </div>
-
-          <Link
-            href="/admin/members"
-            className="shrink-0 rounded-2xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700"
-          >
-            목록
-          </Link>
+    <main className="mx-auto max-w-3xl space-y-4 px-3 py-4 pb-32 sm:px-4 lg:px-6">
+      <header className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold text-emerald-600">운영진 관리</p>
+          <h1 className="mt-1 text-2xl font-bold text-slate-900">회원 수정</h1>
+          <p className="mt-2 text-sm leading-5 text-slate-600">
+            {member.name} 회원의 연락처, 핸디캡, 역할을 수정합니다.
+          </p>
         </div>
 
-        {errorMessage && (
-          <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700">
-            {errorMessage}
+        <Link
+          href="/admin/members"
+          className="shrink-0 rounded-2xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-700"
+        >
+          목록
+        </Link>
+      </header>
+
+      {errorMessage && (
+        <section className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700">
+          {errorMessage}
+        </section>
+      )}
+
+      <form action={updateMemberAction} className="space-y-4">
+        <input type="hidden" name="memberId" value={member.id} />
+
+        <section className="rounded-3xl bg-white p-4 shadow-sm lg:p-5">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="block">
+              <span className="text-sm font-medium text-slate-700">이름</span>
+              <input
+                name="name"
+                type="text"
+                autoComplete="name"
+                required
+                minLength={2}
+                defaultValue={member.name}
+                className="mt-2 h-12 w-full rounded-2xl border border-slate-200 px-4 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+              />
+            </label>
+
+            <label className="block">
+              <span className="text-sm font-medium text-slate-700">연락처</span>
+              <input
+                name="phone"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                required
+                defaultValue={formatKoreanPhoneNumber(member.phone)}
+                className="mt-2 h-12 w-full rounded-2xl border border-slate-200 px-4 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+              />
+            </label>
+
+            <label className="block">
+              <span className="text-sm font-medium text-slate-700">핸디캡</span>
+              <input
+                name="handicap"
+                type="number"
+                inputMode="decimal"
+                step="0.1"
+                defaultValue={member.handicap ?? 0}
+                className="mt-2 h-12 w-full rounded-2xl border border-slate-200 px-4 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+              />
+            </label>
+
+            <label className="block">
+              <span className="text-sm font-medium text-slate-700">역할</span>
+              <select
+                name="role"
+                defaultValue={member.role}
+                className="mt-2 h-12 w-full rounded-2xl border border-slate-200 px-4 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+              >
+                <option value="member">회원</option>
+                <option value="admin">운영진</option>
+              </select>
+            </label>
           </div>
-        )}
+        </section>
 
-        <form action={updateMemberAction} className="mt-6 space-y-4">
-          <input type="hidden" name="memberId" value={member.id} />
+        <section className="rounded-3xl bg-white p-4 text-xs leading-5 text-slate-500 shadow-sm lg:p-5">
+          자기 자신의 운영진 권한 해제와 마지막 운영진 권한 해제는 보안상 차단됩니다.
+        </section>
 
-          <label className="block">
-            <span className="text-sm font-medium text-slate-700">이름</span>
-            <input
-              name="name"
-              type="text"
-              autoComplete="name"
-              required
-              minLength={2}
-              defaultValue={member.name}
-              className="mt-2 h-12 w-full rounded-2xl border border-slate-200 px-4 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-            />
-          </label>
-
-          <label className="block">
-            <span className="text-sm font-medium text-slate-700">연락처</span>
-            <input
-              name="phone"
-              type="tel"
-              inputMode="tel"
-              autoComplete="tel"
-              required
-              defaultValue={member.phone ?? ''}
-              className="mt-2 h-12 w-full rounded-2xl border border-slate-200 px-4 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-            />
-          </label>
-
-          <label className="block">
-            <span className="text-sm font-medium text-slate-700">핸디캡</span>
-            <input
-              name="handicap"
-              type="number"
-              inputMode="decimal"
-              step="0.1"
-              defaultValue={member.handicap ?? 0}
-              className="mt-2 h-12 w-full rounded-2xl border border-slate-200 px-4 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-            />
-          </label>
-
-          <label className="block">
-            <span className="text-sm font-medium text-slate-700">역할</span>
-            <select
-              name="role"
-              defaultValue={member.role}
-              className="mt-2 h-12 w-full rounded-2xl border border-slate-200 px-4 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-            >
-              <option value="member">회원</option>
-              <option value="admin">운영진</option>
-            </select>
-          </label>
-
-          <div className="grid gap-2 sm:grid-cols-2">
-            <Link
-              href="/admin/members"
-              className="flex h-12 items-center justify-center rounded-2xl bg-slate-100 px-4 font-bold text-slate-700"
-            >
-              취소
-            </Link>
-
-            <button
-              type="submit"
-              className="h-12 rounded-2xl bg-emerald-600 px-4 font-bold text-white active:scale-[0.99]"
-            >
-              수정 저장
-            </button>
-          </div>
-        </form>
-
-        <p className="mt-5 text-xs leading-5 text-slate-500">
-          자기 자신의 운영진 권한 해제와 마지막 운영진 권한 해제는 보안상
-          차단됩니다.
-        </p>
-      </section>
+        <SubmitButton label="수정 저장" pendingLabel="저장 중..." />
+      </form>
     </main>
   );
 }

@@ -44,6 +44,7 @@ export async function updateRoundAction(formData: FormData) {
       updated_at: new Date().toISOString(),
     })
     .eq('id', roundId)
+    .is('deleted_at', null)
     .eq('club_id', member.club_id);
 
   if (error) {

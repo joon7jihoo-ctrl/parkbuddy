@@ -182,7 +182,7 @@ function getPairingAssignmentsFromForm(formData: FormData) {
 }
 
 export async function saveRoundPairingsAction(formData: FormData) {
-  const { supabase } = await requireAdmin();
+  const { supabase, member } = await requireAdmin();
 
   const roundId = String(formData.get('roundId') ?? '').trim();
   const gameType = normalizeGameType(
@@ -255,7 +255,9 @@ export async function saveRoundPairingsAction(formData: FormData) {
       game_type: gameType,
       scoring_type: scoringType,
     })
-    .eq('id', roundId);
+    .eq('id', roundId)
+    .eq('club_id', member.club_id)
+    .is('deleted_at', null);
 
   if (pairingMetaError) {
     console.error('round pairing metadata update failed', {

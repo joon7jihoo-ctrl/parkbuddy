@@ -1,7 +1,9 @@
-﻿import Link from 'next/link';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireAdmin } from '@/lib/auth/require-member';
+import { DeletedRoundOperationBlocked } from '@/components/admin/deleted-round-operation-blocked';
 import { RoundPairingForm } from '@/components/admin/round-pairing-form';
+import { getParkBuddyGameMethodLabel } from '@/lib/round-game-labels';
 import { saveRoundPairingsAction } from './actions';
 
 type PairingsPageProps = {
@@ -17,6 +19,7 @@ type PairingsPageProps = {
 type Round = {
   id: string;
   club_id: string;
+  deleted_at: string | null;
   title: string | null;
   course_name: string | null;
   play_date: string | null;
@@ -28,6 +31,19 @@ type Participant = {
   id: string;
   name: string;
   handicap: number;
+  averageStrokes: number | null;
+  roundsCount: number;
+  teamNo: number | null;
+};
+
+type RoundParticipantRow = {
+  member_id: string;
+  team_no: number | null;
+};
+
+type RoundScoreRow = {
+  member_id: string;
+  strokes: number | null;
 };
 
 type RoundGroupMember = {
@@ -92,7 +108,8 @@ export default async function PairingsPage({
       course_name,
       play_date,
       game_type,
-      scoring_type
+      scoring_type,
+      deleted_at
     `,
     )
     .eq('id', routeParams.id)
@@ -107,18 +124,27 @@ export default async function PairingsPage({
     notFound();
   }
 
+  if (round.deleted_at) {
+    return <DeletedRoundOperationBlocked roundTitle={round.title} />;
+  }
+
   const typedRound = round as Round;
 
   const { data: participantRows, error: participantsError } = await supabase
     .from('round_participants')
-    .select('member_id')
+    .select('member_id, team_no')
     .eq('round_id', typedRound.id);
 
   if (participantsError) {
     throw new Error(participantsError.message);
   }
 
-  const memberIds = (participantRows ?? []).map((row) => String(row.member_id));
+  const typedParticipantRows = (participantRows ?? []) as RoundParticipantRow[];
+  const memberIds = typedParticipantRows.map((row) => String(row.member_id));
+  const teamNoByMemberId = typedParticipantRows.reduce<Record<string, number | null>>((acc, row) => {
+    acc[String(row.member_id)] = typeof row.team_no === 'number' ? row.team_no : null;
+    return acc;
+  }, {});
 
   const { data: members, error: membersError } = memberIds.length
     ? await supabase
@@ -134,6 +160,37 @@ export default async function PairingsPage({
   if (membersError) {
     throw new Error(membersError.message);
   }
+
+
+  const { data: scoreRows, error: scoreRowsError } = memberIds.length
+    ? await supabase
+        .from('round_scores')
+        .select('member_id, strokes')
+        .in('member_id', memberIds)
+        .not('strokes', 'is', null)
+    : { data: [], error: null };
+
+  if (scoreRowsError && scoreRowsError.code !== '42P01') {
+    throw new Error(scoreRowsError.message);
+  }
+
+  const scoreStatsByMemberId = ((scoreRows ?? []) as RoundScoreRow[]).reduce<
+    Record<string, { total: number; count: number }>
+  >((acc, row) => {
+    const memberId = String(row.member_id);
+    const strokes = Number(row.strokes ?? NaN);
+
+    if (!Number.isFinite(strokes)) {
+      return acc;
+    }
+
+    const current = acc[memberId] ?? { total: 0, count: 0 };
+    current.total += strokes;
+    current.count += 1;
+    acc[memberId] = current;
+
+    return acc;
+  }, {});
 
   const { data: existingRows, error: existingError } = await supabase
     .from('round_group_members')
@@ -152,26 +209,34 @@ export default async function PairingsPage({
   const existingAssignments = ((existingRows ?? []) as unknown as RoundGroupMember[])
     .filter((row) => row.round_groups?.group_no)
     .reduce<Record<string, number>>((acc, row) => {
-      acc[row.member_id] = Number(row.round_groups?.group_no ?? 1);
+      acc[row.member_id] = Math.max(0, Number(row.round_groups?.group_no ?? 1) - 1);
       return acc;
     }, {});
 
-  const participants = (members ?? []).map((row) => ({
-    id: String(row.id),
-    name: String(row.name),
-    handicap: Number(row.handicap ?? 0),
-  })) satisfies Participant[];
+  const participants = (members ?? []).map((row) => {
+    const memberId = String(row.id);
+    const scoreStats = scoreStatsByMemberId[memberId];
+
+    return {
+      id: memberId,
+      name: String(row.name),
+      handicap: Number(row.handicap ?? 0),
+      averageStrokes: scoreStats?.count ? scoreStats.total / scoreStats.count : null,
+      roundsCount: scoreStats?.count ?? 0,
+      teamNo: teamNoByMemberId[memberId] ?? null,
+    };
+  }) satisfies Participant[];
 
   const errorMessage = getErrorMessage(queryParams.error);
 
   return (
-    <main className="mx-auto max-w-5xl space-y-5 px-4 py-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <main className="mx-auto max-w-7xl space-y-4 px-3 py-4 sm:px-4 sm:py-5">
+      <header className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
         <div>
           <p className="text-sm font-semibold text-emerald-600">
             조 편성
           </p>
-          <h1 className="mt-1 text-2xl font-bold text-slate-900">
+          <h1 className="mt-1 text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
             {typedRound.title ?? '라운드'}
           </h1>
           <p className="mt-1 text-sm text-slate-500">
@@ -179,30 +244,46 @@ export default async function PairingsPage({
           </p>
         </div>
 
-        <div className="flex gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap lg:justify-end">
           <Link
             href={`/admin/rounds/${typedRound.id}/participants`}
-            className="rounded-2xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700"
+            className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-slate-100 px-4 py-2 text-center text-sm font-semibold text-slate-700"
           >
             참가자 선택
           </Link>
           <Link
             href="/admin/rounds"
-            className="rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
+            className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-slate-900 px-4 py-2 text-center text-sm font-semibold text-white"
           >
             라운드 목록
           </Link>
         </div>
       </header>
 
+
+      <section data-round-detail-mobile-summary className="grid grid-cols-3 gap-2 rounded-3xl bg-white p-3 text-center shadow-sm sm:hidden">
+        <div className="rounded-2xl bg-slate-50 px-2 py-2">
+          <p className="text-[11px] font-medium text-slate-500">일자</p>
+          <p className="mt-1 truncate text-xs font-bold text-slate-900">{formatDate(typedRound.play_date)}</p>
+        </div>
+        <div className="rounded-2xl bg-slate-50 px-2 py-2">
+          <p className="text-[11px] font-medium text-slate-500">경기 방식</p>
+          <p className="mt-1 truncate text-xs font-bold text-slate-900">{getParkBuddyGameMethodLabel(typedRound.game_type, typedRound.scoring_type)}</p>
+        </div>
+        <div className="rounded-2xl bg-emerald-50 px-2 py-2">
+          <p className="text-[11px] font-medium text-emerald-700">참가</p>
+          <p className="mt-1 text-xs font-bold text-emerald-900">{participants.length}명</p>
+        </div>
+      </section>
+
       {queryParams.saved && (
-        <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5 text-sm font-semibold text-emerald-700">
+        <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-700">
           조 편성이 저장되었습니다.
         </section>
       )}
 
       {errorMessage && (
-        <section className="rounded-3xl border border-red-200 bg-red-50 p-5 text-sm leading-6 text-red-700">
+        <section className="rounded-3xl border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700">
           {errorMessage}
         </section>
       )}
@@ -217,7 +298,7 @@ export default async function PairingsPage({
           action={saveRoundPairingsAction}
         />
       ) : (
-        <section className="rounded-3xl bg-white p-8 text-center shadow-sm">
+        <section className="rounded-3xl bg-white p-5 text-center shadow-sm sm:p-8">
           <p className="font-semibold text-slate-900">
             아직 참가자가 없습니다.
           </p>
@@ -226,7 +307,7 @@ export default async function PairingsPage({
           </p>
           <Link
             href={`/admin/rounds/${typedRound.id}/participants`}
-            className="mt-5 inline-flex rounded-2xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white"
+            className="mt-5 inline-flex rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white"
           >
             참가자 선택하기
           </Link>

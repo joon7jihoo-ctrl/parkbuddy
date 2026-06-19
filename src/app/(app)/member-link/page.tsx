@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { SubmitButton } from '@/components/SubmitButton';
 
 function encodeErrorMessage(message: string) {
   return encodeURIComponent(message.slice(0, 120));
@@ -162,7 +163,7 @@ export default async function MemberLinkPage({
     : undefined;
 
   return (
-    <main className="mx-auto flex min-h-[calc(100dvh-120px)] max-w-md items-center px-4 py-8">
+    <main className="mx-auto flex min-h-[calc(100dvh-120px)] max-w-2xl items-center px-4 py-8 pb-32">
       <section className="w-full rounded-3xl bg-white p-6 shadow-sm">
         <div>
           <p className="text-sm font-semibold text-emerald-600">ParkBuddy</p>
@@ -228,12 +229,7 @@ export default async function MemberLinkPage({
             />
           </label>
 
-          <button
-            type="submit"
-            className="h-12 w-full rounded-2xl bg-emerald-600 px-4 font-bold text-white active:scale-[0.99]"
-          >
-            회원 정보 연결하기
-          </button>
+          <SubmitButton label="회원 정보 연결하기" pendingLabel="연결 중..." />
         </form>
 
         <p className="mt-5 text-xs leading-5 text-slate-500">

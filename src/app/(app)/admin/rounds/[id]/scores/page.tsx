@@ -1,7 +1,8 @@
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { LinkedEventContextCard } from '@/components/admin/linked-event-context-card';
 import { requireAdmin } from '@/lib/auth/require-member';
-import { saveRoundScoresAction } from './actions';
+import { getRoundLinkedEventContexts } from '@/lib/round-linked-event-context';
+import { RoundScoreInputForm } from '@/components/admin/round-score-input-form';
 
 type ScoresPageProps = {
   params: Promise<{ id: string }>;
@@ -61,7 +62,7 @@ export default async function RoundScoresPage({ params, searchParams }: ScoresPa
 
   const { data: round, error: roundError } = await supabase
     .from('rounds')
-    .select('id, title, course_name, play_date, status, club_id')
+    .select('id, title, course_name, play_date, status, club_id, event_id')
     .eq('id', routeParams.id)
     .eq('club_id', member.club_id)
     .maybeSingle();
@@ -91,120 +92,55 @@ export default async function RoundScoresPage({ params, searchParams }: ScoresPa
   const participants = (participantRows ?? []) as unknown as Participant[];
   const scores = (scoreRows ?? []) as RoundScore[];
   const scoreByMemberId = new Map(scores.map((score) => [score.member_id, score]));
+  const scoreFormParticipants = participants.map((participant) => {
+    const score = scoreByMemberId.get(participant.member_id);
+    return {
+      memberId: participant.member_id,
+      name: participant.member?.name ?? '이름 없는 회원',
+      handicap: participant.member?.handicap ?? 0,
+      strokes: score?.strokes ?? null,
+      stablefordPoints: score?.stableford_points ?? null,
+      memo: score?.memo ?? null,
+    };
+  });
+  const linkedEventContexts = await getRoundLinkedEventContexts(
+    supabase,
+    member.club_id,
+    [round.event_id],
+  );
+  const linkedEventContext = round.event_id ? linkedEventContexts.get(round.event_id) : null;
   const errorMessage = getErrorMessage(queryParams.error);
 
   return (
-    <main className="mx-auto max-w-5xl space-y-5 px-4 py-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-sm font-semibold text-emerald-600">스코어 관리</p>
-          <h1 className="mt-1 text-2xl font-bold text-slate-900">스코어 입력</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            {round.title} · {round.course_name} · {formatDate(round.play_date)}
-          </p>
-        </div>
+    <main className="mx-auto max-w-7xl space-y-4 px-3 py-4 sm:px-4 sm:py-5">
+      {linkedEventContext && <LinkedEventContextCard context={linkedEventContext} />}
 
-        <div className="flex gap-2">
-          <Link href={`/admin/rounds/${round.id}/pairings`} className="rounded-2xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700">
-            조 편성
-          </Link>
-          <Link href="/admin/rounds" className="rounded-2xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700">
-            라운드 목록
-          </Link>
-        </div>
+      <header>
+        <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">스코어 입력</h1>
+        <p className="mt-1 text-sm text-slate-500">
+          {round.title} · {round.course_name} · {formatDate(round.play_date)}
+        </p>
       </header>
 
       {queryParams.saved && (
-        <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5 text-sm font-semibold text-emerald-700">
+        <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-700">
           스코어가 저장되었습니다.
         </section>
       )}
 
       {errorMessage && (
-        <section className="rounded-3xl border border-red-200 bg-red-50 p-5 text-sm leading-6 text-red-700">
+        <section className="rounded-3xl border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700">
           {errorMessage}
         </section>
       )}
 
-      <form action={saveRoundScoresAction} className="space-y-5">
-        <input type="hidden" name="roundId" value={round.id} />
 
-        <section className="overflow-hidden rounded-3xl bg-white shadow-sm">
-          <div className="border-b border-slate-100 px-5 py-4">
-            <h2 className="font-bold text-slate-900">참가자 스코어 {participants.length}명</h2>
-            <p className="mt-1 text-sm text-slate-500">
-              우선 총 타수와 스테이블포드 포인트를 저장합니다. 신페리오/매치플레이 자동 계산은 다음 단계에서 확장합니다.
-            </p>
-          </div>
+      <RoundScoreInputForm
+        roundId={round.id}
+        participants={scoreFormParticipants}
+        playDateLabel={formatDate(round.play_date)}
+      />
 
-          <div className="divide-y divide-slate-100">
-            {participants.length ? (
-              participants.map((participant) => {
-                const memberInfo = participant.member;
-                const score = scoreByMemberId.get(participant.member_id);
-
-                return (
-                  <article key={participant.member_id} className="grid gap-4 px-5 py-4 lg:grid-cols-[1fr_160px_180px_1fr]">
-                    <input type="hidden" name="memberId" value={participant.member_id} />
-
-                    <div>
-                      <p className="font-bold text-slate-900">{memberInfo?.name ?? '이름 없는 회원'}</p>
-                      <p className="mt-1 text-sm text-slate-500">핸디캡 {memberInfo?.handicap ?? 0}</p>
-                    </div>
-
-                    <label className="block">
-                      <span className="text-xs font-medium text-slate-500">총 타수</span>
-                      <input
-                        name={`strokes:${participant.member_id}`}
-                        type="number"
-                        min={1}
-                        max={200}
-                        defaultValue={score?.strokes ?? ''}
-                        className="mt-1 h-11 w-full rounded-2xl border border-slate-200 px-3 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-                      />
-                    </label>
-
-                    <label className="block">
-                      <span className="text-xs font-medium text-slate-500">스테이블포드 포인트</span>
-                      <input
-                        name={`stablefordPoints:${participant.member_id}`}
-                        type="number"
-                        min={-20}
-                        max={100}
-                        defaultValue={score?.stableford_points ?? ''}
-                        className="mt-1 h-11 w-full rounded-2xl border border-slate-200 px-3 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-                      />
-                    </label>
-
-                    <label className="block">
-                      <span className="text-xs font-medium text-slate-500">메모</span>
-                      <input
-                        name={`memo:${participant.member_id}`}
-                        type="text"
-                        defaultValue={score?.memo ?? ''}
-                        className="mt-1 h-11 w-full rounded-2xl border border-slate-200 px-3 text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-                      />
-                    </label>
-                  </article>
-                );
-              })
-            ) : (
-              <div className="px-5 py-12 text-center">
-                <p className="text-sm font-semibold text-slate-700">아직 참가자가 없습니다.</p>
-                <p className="mt-1 text-sm text-slate-500">참가자를 먼저 선택한 뒤 스코어를 입력하세요.</p>
-              </div>
-            )}
-          </div>
-        </section>
-
-        <button
-          type="submit"
-          disabled={!participants.length}
-          className="h-12 w-full rounded-2xl bg-emerald-600 px-4 font-bold text-white disabled:cursor-not-allowed disabled:bg-slate-300"
-        >
-          스코어 저장
-        </button>
-      </form>
     </main>
   );
 }
