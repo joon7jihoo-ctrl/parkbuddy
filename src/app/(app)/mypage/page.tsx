@@ -87,7 +87,7 @@ function getVoteStatusBadge(status: DisplayVoteStatus | null) {
 function getVoteStatusLabel(status: DisplayVoteStatus | null) {
   if (status === 'attend') return '참석';
   if (status === 'absent') return '불참';
-  return '미선택';
+  return '미응답';
 }
 
 function UpcomingScheduleCard({ event, memberId }: { event: UpcomingEvent; memberId: string }) {
@@ -116,7 +116,7 @@ function UpcomingScheduleCard({ event, memberId }: { event: UpcomingEvent; membe
       <div className="mt-3 space-y-1.5">
         <div className="flex items-center justify-between text-[11px] font-black text-slate-500">
           <span>참석 {attendCount}명</span>
-          <span>투표 {votedCount}명</span>
+          <span>응답 {votedCount}명</span>
         </div>
         <div className="h-2 overflow-hidden rounded-full bg-slate-100">
           <div className="h-full rounded-full bg-emerald-500" style={{ width: `${Math.min(attendPercent, 100)}%` }} aria-hidden="true" />
@@ -226,10 +226,10 @@ export default async function MyPage() {
       <section className="rounded-[28px] border border-slate-200 bg-slate-50/70 p-3 shadow-sm md:p-4">
         <div className="mb-3 flex items-center justify-between gap-3">
           <div>
-            <h2 className="text-sm font-extrabold text-slate-950 md:text-base">다가오는 내 일정</h2>
+            <h2 className="text-sm font-extrabold text-slate-950 md:text-base">다가오는 라운딩 공지</h2>
           </div>
           <Link href="/schedule" className="shrink-0 rounded-full bg-white px-3 py-2 text-xs font-black text-emerald-700 ring-1 ring-emerald-100 active:scale-[0.98]">
-            일정 보기
+            공지 보기
           </Link>
         </div>
 
@@ -241,7 +241,7 @@ export default async function MyPage() {
           </div>
         ) : (
           <p className="rounded-3xl bg-white px-4 py-5 text-center text-sm font-semibold text-slate-500 shadow-sm ring-1 ring-slate-100">
-            예정된 일정이 없습니다.
+            예정된 라운딩 공지가 없습니다.
           </p>
         )}
       </section>

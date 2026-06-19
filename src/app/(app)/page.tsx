@@ -112,7 +112,7 @@ export default async function HomePage() {
             <HomeMenuCard
               href="/admin/rounds"
               eyebrow="운영진 메뉴"
-              title="라운딩 관리"
+              title="확정 라운드"
             />
             <HomeMenuCard
               href="/admin/logs"
@@ -125,7 +125,7 @@ export default async function HomePage() {
             <HomeMenuCard
               href="/schedule"
               eyebrow="회원 메뉴"
-              title="일정"
+              title="라운딩 공지"
             />
             <HomeMenuCard
               href="/scores"
@@ -154,12 +154,12 @@ export default async function HomePage() {
       <section className="grid gap-3 sm:grid-cols-2">
         <HomeMenuCard
           href="/schedule"
-          eyebrow="최근 라운딩"
+          eyebrow="라운딩 공지"
           title={recentEvent?.title ?? '최근 라운딩'}
           description={
             recentEvent
               ? `${new Date(recentEvent.starts_at).toLocaleString('ko-KR')} · ${recentEvent.course_name}`
-              : '등록된 일정이 없습니다.'
+              : '등록된 라운딩 공지가 없습니다.'
           }
         />
         <HomeMenuCard

@@ -34,7 +34,7 @@ function getActions(pathname: string): QuickAction[] {
 
   if (pathname === '/') {
     return [
-      { href: '/schedule', label: '일정', tone: 'primary' },
+      { href: '/schedule', label: '라운딩 공지', tone: 'primary' },
       { href: '/board', label: '게시판', tone: 'neutral' },
     ];
   }
@@ -48,7 +48,7 @@ function getActions(pathname: string): QuickAction[] {
 
   if (pathname === '/members') {
     return [
-      { href: '/schedule', label: '일정', tone: 'primary' },
+      { href: '/schedule', label: '라운딩 공지', tone: 'primary' },
       { href: '/scores', label: '스코어', tone: 'neutral' },
     ];
   }
@@ -56,21 +56,21 @@ function getActions(pathname: string): QuickAction[] {
   if (pathname === '/scores') {
     return [
       { href: '/mypage', label: '마이페이지', tone: 'primary' },
-      { href: '/schedule', label: '일정', tone: 'neutral' },
+      { href: '/schedule', label: '라운딩 공지', tone: 'neutral' },
     ];
   }
 
   if (pathname === '/mypage') {
     return [
       { href: '/scores', label: '스코어', tone: 'primary' },
-      { href: '/schedule', label: '일정', tone: 'neutral' },
+      { href: '/schedule', label: '라운딩 공지', tone: 'neutral' },
     ];
   }
 
   if (pathname === '/board') {
     return [
       { href: '/board/new', label: '글쓰기', tone: 'primary' },
-      { href: '/schedule', label: '일정', tone: 'neutral' },
+      { href: '/schedule', label: '라운딩 공지', tone: 'neutral' },
     ];
   }
 
@@ -83,7 +83,7 @@ function getActions(pathname: string): QuickAction[] {
 
   if (pathname === '/admin' || pathname === '/admin/logs') {
     return [
-      { href: '/admin/rounds', label: '라운딩 관리', tone: 'primary' },
+      { href: '/admin/rounds', label: '확정 라운드', tone: 'primary' },
       { href: '/admin/members', label: '회원 관리', tone: 'neutral' },
     ];
   }
@@ -91,7 +91,7 @@ function getActions(pathname: string): QuickAction[] {
   if (pathname === '/admin/members') {
     return [
       { href: '/admin/members/new', label: '회원 등록', tone: 'primary' },
-      { href: '/admin/rounds', label: '라운딩 관리', tone: 'neutral' },
+      { href: '/admin/rounds', label: '확정 라운드', tone: 'neutral' },
     ];
   }
 
@@ -104,14 +104,14 @@ function getActions(pathname: string): QuickAction[] {
 
   if (pathname === '/admin/rounds/calendar') {
     return [
-      { href: '/admin/rounds', label: '라운딩 관리', tone: 'primary' },
+      { href: '/admin/rounds', label: '확정 라운드', tone: 'primary' },
       { href: '/admin/rounds/new', label: '라운드 생성', tone: 'neutral' },
     ];
   }
 
   if (pathname === '/admin/rounds/status' || pathname === '/admin/rounds/deleted') {
     return [
-      { href: '/admin/rounds', label: '라운딩 관리', tone: 'primary' },
+      { href: '/admin/rounds', label: '확정 라운드', tone: 'primary' },
       { href: '/admin/rounds/calendar', label: '달력', tone: 'neutral' },
     ];
   }
@@ -131,7 +131,7 @@ function getActions(pathname: string): QuickAction[] {
 
   if (roundId) {
     return [
-      { href: '/admin/rounds', label: '라운딩 관리', tone: 'primary' },
+      { href: '/admin/rounds', label: '확정 라운드', tone: 'primary' },
       { href: `/admin/rounds/${roundId}/results`, label: '결과', tone: 'neutral' },
     ];
   }

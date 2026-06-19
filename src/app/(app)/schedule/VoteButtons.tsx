@@ -39,7 +39,7 @@ const OPTIONS: Array<{ status: VoteStatus; label: string }> = [
 function getStatusLabel(status: VoteStatus | null) {
   if (status === 'attend') return '참석';
   if (status === 'absent') return '불참';
-  return '미선택';
+  return '미응답';
 }
 
 function formatPercent(count: number, totalMembers: number) {
@@ -87,7 +87,7 @@ function VoterListModal({
   if (!mode) return null;
 
   const allVoters = [...attendVoters, ...absentVoters];
-  const title = mode === 'all' ? '전체 투표 명단' : `${getStatusLabel(mode)} 명단`;
+  const title = mode === 'all' ? '전체 응답 명단' : `${getStatusLabel(mode)} 명단`;
   const voters = mode === 'attend' ? attendVoters : mode === 'absent' ? absentVoters : allVoters;
 
   return (
@@ -125,7 +125,7 @@ function VoterListModal({
             ))}
           </ul>
         ) : (
-          <div className="px-4 py-8 text-center text-sm font-bold text-slate-500">아직 선택한 회원이 없습니다.</div>
+          <div className="px-4 py-8 text-center text-sm font-bold text-slate-500">아직 응답한 회원이 없습니다.</div>
         )}
       </section>
     </div>
@@ -143,7 +143,7 @@ export function VoteTotalButton({ voters, totalMembers }: VoteTotalButtonProps) 
         onClick={() => setIsOpen(true)}
         className="rounded-full bg-slate-50 px-2.5 py-1 text-[11px] font-black text-slate-600 ring-1 ring-slate-200 active:scale-[0.98]"
       >
-        투표 {voters.length}명 · {percent}%
+        응답 {voters.length}명 · {percent}%
       </button>
       <VoterListModal
         mode={isOpen ? 'all' : null}

@@ -6,7 +6,7 @@ import { requireCurrentMember } from '@/server/auth';
 import { createRoundFromEventAction } from '@/server/actions/event-rounds';
 import { VoteButtons, VoteTotalButton, type VoteListMember } from './VoteButtons';
 
-type VoteStatus = 'attend' | 'absent' | 'maybe';
+type VoteStatus = 'attend' | 'absent';
 type DisplayVoteStatus = 'attend' | 'absent';
 
 type EventVote = {
@@ -70,15 +70,15 @@ function getEventRoundErrorMessage(error?: string) {
     case 'admin_required':
       return '운영진만 라운딩을 생성할 수 있습니다.';
     case 'event_not_found':
-      return '일정을 찾을 수 없습니다.';
+      return '라운딩 공지를 찾을 수 없습니다.';
     case 'no_attendees':
-      return '참석으로 투표한 회원이 있어야 라운딩을 생성할 수 있습니다.';
+      return '참석으로 응답한 회원이 있어야 확정 라운드를 생성할 수 있습니다.';
     case 'rpc_missing':
-      return 'Supabase 라운딩 생성 함수가 없습니다. 최신 SQL을 먼저 실행해 주세요.';
+      return 'Supabase 확정 라운드 생성 함수가 없습니다. 최신 SQL을 먼저 실행해 주세요.';
     case 'permission_denied':
-      return '라운딩 생성 권한이 없습니다.';
+      return '확정 라운드 생성 권한이 없습니다.';
     case 'unknown':
-      return '라운딩 생성 중 알 수 없는 오류가 발생했습니다.';
+      return '확정 라운드 생성 중 알 수 없는 오류가 발생했습니다.';
     default:
       return null;
   }
@@ -102,7 +102,7 @@ function ScheduleSummaryBar({ summary }: { summary: ScheduleSummary }) {
     <section className="sticky top-0 z-20 -mx-4 border-y border-slate-200 bg-slate-50/95 px-4 py-2 backdrop-blur md:static md:mx-0 md:border-0 md:bg-transparent md:px-0 md:py-0 md:backdrop-blur-none">
       <div className="grid grid-cols-3 gap-2 md:gap-3">
         <div className="rounded-2xl bg-white px-3 py-2 text-center shadow-sm ring-1 ring-slate-100 md:rounded-3xl md:py-3">
-          <p className="text-[11px] font-bold text-slate-400 md:text-xs">예정</p>
+          <p className="text-[11px] font-bold text-slate-400 md:text-xs">공지</p>
           <p className="mt-0.5 text-lg font-extrabold leading-none text-slate-950 md:text-xl">{summary.total}건</p>
         </div>
         <div className="rounded-2xl bg-emerald-50 px-3 py-2 text-center shadow-sm ring-1 ring-emerald-100 md:rounded-3xl md:py-3">
@@ -110,7 +110,7 @@ function ScheduleSummaryBar({ summary }: { summary: ScheduleSummary }) {
           <p className="mt-0.5 text-lg font-extrabold leading-none text-emerald-800 md:text-xl">{summary.myAttend}건</p>
         </div>
         <div className="rounded-2xl bg-rose-50 px-3 py-2 text-center shadow-sm ring-1 ring-rose-100 md:rounded-3xl md:py-3">
-          <p className="text-[11px] font-bold text-rose-600 md:text-xs">미선택</p>
+          <p className="text-[11px] font-bold text-rose-600 md:text-xs">미응답</p>
           <p className="mt-0.5 text-lg font-extrabold leading-none text-rose-800 md:text-xl">{summary.myPending}건</p>
         </div>
       </div>
@@ -141,7 +141,7 @@ function EventRoundAction({
         href={`/admin/rounds/${linkedRoundId}/participants`}
         className="flex min-h-11 items-center justify-center rounded-2xl bg-slate-900 px-4 py-2 text-sm font-extrabold text-white shadow-sm transition active:scale-[0.99]"
       >
-        생성된 라운딩 보기
+        생성된 확정 라운드 보기
       </Link>
     );
   }
@@ -157,7 +157,7 @@ function EventRoundAction({
   return (
     <details className="group overflow-hidden rounded-2xl border border-emerald-200 bg-emerald-50">
       <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-3 py-2 text-sm font-extrabold text-emerald-800 marker:hidden">
-        <span>참석자 기준 라운딩 생성</span>
+        <span>참석자 기준 확정 라운드 생성</span>
         <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-black text-emerald-700 ring-1 ring-emerald-100">
           {attendCount}명
         </span>
@@ -165,7 +165,7 @@ function EventRoundAction({
       <div className="border-t border-emerald-100 bg-white px-3 py-3">
         <div className="grid grid-cols-3 gap-2 text-center">
           <div className="rounded-2xl bg-emerald-50 px-2 py-2">
-            <p className="text-[11px] font-bold text-emerald-600">참가 추가</p>
+            <p className="text-[11px] font-bold text-emerald-600">참석 반영</p>
             <p className="mt-0.5 text-lg font-black leading-none text-emerald-800">{attendCount}</p>
           </div>
           <div className="rounded-2xl bg-rose-50 px-2 py-2">
@@ -173,7 +173,7 @@ function EventRoundAction({
             <p className="mt-0.5 text-lg font-black leading-none text-rose-800">{absentCount}</p>
           </div>
           <div className="rounded-2xl bg-slate-50 px-2 py-2">
-            <p className="text-[11px] font-bold text-slate-500">미선택 제외</p>
+            <p className="text-[11px] font-bold text-slate-500">미응답 제외</p>
             <p className="mt-0.5 text-lg font-black leading-none text-slate-800">{pendingCount}</p>
           </div>
         </div>
@@ -184,7 +184,7 @@ function EventRoundAction({
             type="submit"
             className="flex min-h-11 w-full items-center justify-center rounded-2xl bg-emerald-600 px-4 py-2 text-sm font-extrabold text-white shadow-sm transition active:scale-[0.99]"
           >
-            확인 후 라운딩 생성
+            확인 후 확정 라운드 생성
           </button>
         </form>
       </div>
@@ -250,9 +250,9 @@ export default async function SchedulePage({ searchParams }: SchedulePageProps) 
   return (
     <main className="mx-auto max-w-5xl space-y-3 px-4 py-4 pb-28 md:space-y-4 md:py-6">
       <TopBar
-        title="일정"
-        description="다가오는 라운딩 참석 여부를 빠르게 선택하세요."
-        action={member.role === 'admin' ? { href: '/admin/events/new', label: '일정 등록' } : undefined}
+        title="라운딩 공지"
+        description="다가오는 라운딩 공지의 참석/불참을 빠르게 선택하세요."
+        action={member.role === 'admin' ? { href: '/admin/events/new', label: '공지 등록' } : undefined}
       />
 
       {eventRoundErrorMessage ? (
@@ -329,7 +329,7 @@ export default async function SchedulePage({ searchParams }: SchedulePageProps) 
           </section>
         </>
       ) : (
-        <EmptyState title="예정된 일정이 없습니다" description="새 라운딩 일정이 등록되면 참석 투표를 할 수 있습니다." />
+        <EmptyState title="예정된 라운딩 공지가 없습니다" description="새 라운딩 공지가 등록되면 참석/불참을 선택할 수 있습니다." />
       )}
     </main>
   );

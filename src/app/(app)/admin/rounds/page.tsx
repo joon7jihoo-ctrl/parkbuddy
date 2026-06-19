@@ -132,19 +132,19 @@ export default async function AdminRoundsPage({ searchParams }: AdminRoundsPageP
       <header className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm md:border-0 md:bg-transparent md:p-0 md:shadow-none">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-xs font-extrabold text-emerald-600 md:text-sm">라운드 관리</p>
-            <h1 className="mt-1 text-xl font-black leading-tight text-slate-900 md:text-2xl">라운드 목록</h1>
-            <p className="mt-1 text-xs font-semibold leading-5 text-slate-500 md:text-sm">일정, 참가자, 조 편성, 스코어를 빠르게 관리합니다.</p>
+            <p className="text-xs font-extrabold text-emerald-600 md:text-sm">확정 라운드 관리</p>
+            <h1 className="mt-1 text-xl font-black leading-tight text-slate-900 md:text-2xl">확정 라운드 목록</h1>
+            <p className="mt-1 text-xs font-semibold leading-5 text-slate-500 md:text-sm">참석이 확정된 라운드의 참가자, 조 편성, 스코어를 빠르게 관리합니다.</p>
           </div>
           <Link href="/admin/rounds/new" className="hidden min-h-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-600 px-4 text-sm font-extrabold text-white shadow-sm transition active:scale-[0.99] sm:flex">
-            라운드 생성
+            확정 라운드 생성
           </Link>
         </div>
       </header>
 
-      {params.created && <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-700 md:p-5">라운드가 생성되었습니다.</section>}
-      {params.statusUpdated && <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-700 md:p-5">라운드 상태가 변경되었습니다.</section>}
-      {params.roundDeleted && <section className="rounded-3xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-800 md:p-5">라운드가 삭제된 라운드 목록으로 이동했습니다.</section>}
+      {params.created && <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-700 md:p-5">확정 라운드가 생성되었습니다.</section>}
+      {params.statusUpdated && <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-700 md:p-5">확정 라운드 상태가 변경되었습니다.</section>}
+      {params.roundDeleted && <section className="rounded-3xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-800 md:p-5">확정 라운드가 삭제된 라운드 목록으로 이동했습니다.</section>}
       {errorMessage && <section className="rounded-3xl border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700 md:p-5">{errorMessage}</section>}
 
       <section className="sticky top-0 z-20 -mx-4 border-y border-slate-200 bg-slate-50/95 px-4 py-2 backdrop-blur md:static md:mx-0 md:border-0 md:bg-transparent md:px-0 md:py-0 md:backdrop-blur-none">
@@ -165,7 +165,7 @@ export default async function AdminRoundsPage({ searchParams }: AdminRoundsPageP
                 <div className="flex flex-col gap-3 lg:grid lg:grid-cols-[1fr_340px] lg:gap-4">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-base font-black leading-tight text-slate-900 md:text-lg">{round.title ?? '이름 없는 라운드'}</h3>
+                      <h3 className="text-base font-black leading-tight text-slate-900 md:text-lg">{round.title ?? '이름 없는 확정 라운드'}</h3>
                       <span className={['rounded-full px-2 py-1 text-[11px] font-bold md:text-xs', getStatusClassName(round.status)].join(' ')}>{getStatusLabel(round.status)}</span>
                       <span className="rounded-full bg-slate-100 px-2 py-1 text-[11px] font-bold text-slate-600 md:text-xs">참가자 {participantCount}명</span>
                     </div>
@@ -207,13 +207,13 @@ export default async function AdminRoundsPage({ searchParams }: AdminRoundsPageP
             );
           })
         ) : (
-          <div className="rounded-3xl bg-white px-5 py-12 text-center shadow-sm"><p className="text-sm font-semibold text-slate-700">표시할 라운드가 없습니다.</p><p className="mt-1 text-sm text-slate-500">다른 상태를 선택하거나 새 라운드를 생성하세요.</p></div>
+          <div className="rounded-3xl bg-white px-5 py-12 text-center shadow-sm"><p className="text-sm font-semibold text-slate-700">표시할 확정 라운드가 없습니다.</p><p className="mt-1 text-sm text-slate-500">다른 상태를 선택하거나 새 확정 라운드를 생성하세요.</p></div>
         )}
       </section>
 
       <nav className="parkbuddy-sticky-cta">
         <div data-parkbuddy-sticky-cta="true" className="parkbuddy-sticky-cta__inner">
-          <Link href="/admin/rounds/new" className="flex h-12 items-center justify-center rounded-2xl bg-emerald-600 text-sm font-bold text-white shadow-sm">라운드 생성</Link>
+          <Link href="/admin/rounds/new" className="flex h-12 items-center justify-center rounded-2xl bg-emerald-600 text-sm font-bold text-white shadow-sm">확정 라운드 생성</Link>
         </div>
       </nav>
     </main>
