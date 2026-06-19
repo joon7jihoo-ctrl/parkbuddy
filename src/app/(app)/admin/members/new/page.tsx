@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { requireAdmin } from '@/lib/auth/require-member';
+import { SubmitButton } from '@/components/SubmitButton';
 import { createMemberAction } from '../actions';
 
 type NewMemberPageProps = {
@@ -125,14 +126,10 @@ export default async function NewMemberPage({
           보안상 연결 코드는 평문 저장하지 않고 해시로 저장합니다. 등록 후 표시되는 코드는 회원에게 전달한 뒤 다시 확인할 수 없으며, 필요하면 회원 관리 화면에서 재발급하세요.
         </section>
 
-        <div className="sticky bottom-24 z-20 rounded-3xl border border-slate-200 bg-white/95 p-3 shadow-xl backdrop-blur lg:static lg:shadow-none">
-          <button
-            type="submit"
-            className="h-12 w-full rounded-2xl bg-emerald-600 px-4 font-bold text-white active:scale-[0.99]"
-          >
-            회원 등록하고 연결 코드 발급
-          </button>
-        </div>
+        <SubmitButton
+          label="회원 등록하고 연결 코드 발급"
+          pendingLabel="등록 중..."
+        />
       </form>
     </main>
   );

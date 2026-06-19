@@ -1,5 +1,6 @@
-﻿import Link from 'next/link';
+import Link from 'next/link';
 import { requireAdmin } from '@/lib/auth/require-member';
+import { SubmitButton } from '@/components/SubmitButton';
 import { createRoundAction } from '../actions';
 
 
@@ -64,7 +65,7 @@ export default async function NewRoundPage({
   const errorMessage = getErrorMessage(params.error);
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-xl items-center px-4 py-6">
+    <main className="mx-auto flex min-h-dvh max-w-xl items-center px-4 py-6 pb-32">
       <section className="w-full rounded-3xl bg-white p-6 shadow-sm">
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -158,12 +159,7 @@ export default async function NewRoundPage({
             />
           </label>
 
-          <button
-            type="submit"
-            className="h-12 w-full rounded-2xl bg-emerald-600 px-4 font-bold text-white active:scale-[0.99]"
-          >
-            라운드 생성
-          </button>
+          <SubmitButton label="라운드 생성" pendingLabel="생성 중..." />
         </form>
       </section>
     </main>

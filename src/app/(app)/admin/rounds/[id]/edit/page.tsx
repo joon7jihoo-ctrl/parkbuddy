@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireAdmin } from '@/lib/auth/require-member';
+import { SubmitButton } from '@/components/SubmitButton';
 import { DeletedRoundOperationBlocked } from '@/components/admin/deleted-round-operation-blocked';
 import { updateRoundAction } from './actions';
 
@@ -46,7 +47,7 @@ export default async function EditRoundPage({ params }: EditRoundPageProps) {
   const typedRound = round as RoundInfo;
 
   return (
-    <main className="mx-auto max-w-5xl space-y-4 px-3 py-4 sm:px-4 sm:py-5">
+    <main className="mx-auto max-w-5xl space-y-4 px-3 py-4 pb-32 sm:px-4 sm:py-5">
       <header className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
         <div>
           <p className="text-sm font-semibold text-emerald-600">라운드 수정</p>
@@ -109,19 +110,8 @@ export default async function EditRoundPage({ params }: EditRoundPageProps) {
           />
         </label>
 
-        <div className="grid gap-2 sm:grid-cols-2 md:col-span-2">
-          <button
-            type="submit"
-            className="h-12 flex-1 rounded-2xl bg-emerald-600 px-4 font-bold text-white"
-          >
-            수정 저장
-          </button>
-          <Link
-            href="/admin/rounds"
-            className="flex h-12 flex-1 items-center justify-center rounded-2xl bg-slate-100 px-4 font-bold text-slate-700"
-          >
-            취소
-          </Link>
+        <div className="md:col-span-2">
+          <SubmitButton label="수정 저장" pendingLabel="저장 중..." />
         </div>
       </form>
     </main>

@@ -173,3 +173,10 @@ npm run verify
 ```text
 dev/PARKBUDDY_ARCHITECTURE_BOUNDARY_AUDIT.md
 ```
+
+## 2026-06-19 - Sticky form CTA cleanup
+
+- 회원 등록/수정, 라운드 생성/수정, 회원 정보 연결 화면의 저장/등록 액션을 공통 `SubmitButton` 기준으로 정리했다.
+- 기능/Server Action은 변경하지 않고, 모바일 하단 sticky CTA 경험만 통일했다.
+- `performance-dense-ux-audit`에서 위 5개 화면 경고가 제거되었다.
+- 조 편성/참가자/일정/로그인/게시판 등 자체 액션이 많은 화면은 이번 범위에서 제외했다.

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireAdmin } from '@/lib/auth/require-member';
+import { SubmitButton } from '@/components/SubmitButton';
 import { formatKoreanPhoneNumber } from '@/lib/korean-search';
 import { updateMemberAction } from '../../actions';
 
@@ -84,7 +85,7 @@ export default async function EditMemberPage({
 
   return (
     <main className="mx-auto max-w-3xl space-y-4 px-3 py-4 pb-32 sm:px-4 lg:px-6">
-      <header>
+      <header className="flex items-start justify-between gap-3">
         <div>
           <p className="text-sm font-semibold text-emerald-600">운영진 관리</p>
           <h1 className="mt-1 text-2xl font-bold text-slate-900">회원 수정</h1>
@@ -92,6 +93,13 @@ export default async function EditMemberPage({
             {member.name} 회원의 연락처, 핸디캡, 역할을 수정합니다.
           </p>
         </div>
+
+        <Link
+          href="/admin/members"
+          className="shrink-0 rounded-2xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-700"
+        >
+          목록
+        </Link>
       </header>
 
       {errorMessage && (
@@ -161,21 +169,7 @@ export default async function EditMemberPage({
           자기 자신의 운영진 권한 해제와 마지막 운영진 권한 해제는 보안상 차단됩니다.
         </section>
 
-        <div className="sticky bottom-24 z-20 grid grid-cols-2 gap-2 rounded-3xl border border-slate-200 bg-white/95 p-3 shadow-xl backdrop-blur lg:static lg:shadow-none">
-          <button
-            type="submit"
-            className="h-12 rounded-2xl bg-emerald-600 px-4 font-bold text-white active:scale-[0.99]"
-          >
-            수정 저장
-          </button>
-
-          <Link
-            href="/admin/members"
-            className="flex h-12 items-center justify-center rounded-2xl bg-slate-100 px-4 font-bold text-slate-700"
-          >
-            취소
-          </Link>
-        </div>
+        <SubmitButton label="수정 저장" pendingLabel="저장 중..." />
       </form>
     </main>
   );
