@@ -137,12 +137,23 @@ create trigger validate_round_hole_score_entry_before_write
 before insert or update on public.round_hole_scores
 for each row execute function public.validate_round_hole_score_entry();
 
+create or replace function public.touch_round_hole_scores_updated_at()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
 drop trigger if exists touch_round_hole_scores_updated_at
 on public.round_hole_scores;
 
 create trigger touch_round_hole_scores_updated_at
 before update on public.round_hole_scores
-for each row execute function public.touch_updated_at();
+for each row execute function public.touch_round_hole_scores_updated_at();
 
 alter table public.round_hole_scores enable row level security;
 
