@@ -12,6 +12,7 @@ const expectedTables = [
   'round_participants',
   'round_pairings',
   'round_scores',
+  'round_hole_scores',
   'events',
   'event_votes',
   'posts',
