@@ -328,3 +328,159 @@ html {
   }
 }
 /* End ParkBuddy mobile dense + soft motion UX foundation */
+
+/* ParkBuddy universal mobile Dense UX + sticky surfaces */
+@layer components {
+  .pb-app-content > main {
+    width: 100%;
+  }
+
+  .pb-dense-card {
+    border-radius: 1.5rem;
+    border: 1px solid rgb(226 232 240);
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+  }
+
+  .pb-sticky-top {
+    position: sticky;
+    top: max(0.5rem, env(safe-area-inset-top));
+    z-index: 35;
+  }
+
+  [data-parkbuddy-quick-actions='true'] {
+    bottom: calc(env(safe-area-inset-bottom) + 5.15rem);
+  }
+
+  [data-parkbuddy-sticky-cta='true'] {
+    bottom: calc(env(safe-area-inset-bottom) + 5.15rem);
+  }
+
+  @media (max-width: 767px) {
+    .pb-app-content {
+      padding: 0.75rem 0.75rem 8.25rem !important;
+    }
+
+    .pb-app-content > main {
+      max-width: 100% !important;
+      padding: 0 0 7.25rem !important;
+      margin-left: auto !important;
+      margin-right: auto !important;
+    }
+
+    .pb-app-content > main[class*='space-y-5'] {
+      gap: 0.875rem;
+    }
+
+    .pb-app-content > main > header:first-child,
+    .pb-app-content > main > .pb-sticky-top:first-child {
+      position: sticky;
+      top: max(0.5rem, env(safe-area-inset-top));
+      z-index: 35;
+      margin-left: -0.125rem;
+      margin-right: -0.125rem;
+      border: 1px solid rgb(226 232 240) !important;
+      border-radius: 1.5rem !important;
+      background: rgba(255, 255, 255, 0.94) !important;
+      padding: 0.75rem !important;
+      box-shadow: 0 14px 36px rgba(15, 23, 42, 0.12) !important;
+      backdrop-filter: blur(14px);
+    }
+
+    .pb-app-content > main > header:first-child h1 {
+      margin-top: 0.125rem !important;
+      font-size: 1.25rem !important;
+      line-height: 1.6rem !important;
+      letter-spacing: -0.025em;
+    }
+
+    .pb-app-content > main > header:first-child p {
+      font-size: 0.75rem !important;
+      line-height: 1.1rem !important;
+    }
+
+    .pb-app-content section,
+    .pb-app-content article {
+      scroll-margin-top: 6rem;
+    }
+
+    .pb-app-content .rounded-3xl,
+    .pb-app-content .rounded-\[30px\],
+    .pb-app-content .rounded-\[2rem\] {
+      border-radius: 1.375rem !important;
+    }
+
+    .pb-app-content .p-5 {
+      padding: 1rem !important;
+    }
+
+    .pb-app-content .p-4 {
+      padding: 0.875rem !important;
+    }
+
+    .pb-app-content .gap-5 {
+      gap: 1rem !important;
+    }
+
+    .pb-app-content .gap-4 {
+      gap: 0.875rem !important;
+    }
+
+    .pb-app-content .space-y-5 > :not([hidden]) ~ :not([hidden]) {
+      --tw-space-y-reverse: 0;
+      margin-top: calc(0.875rem * calc(1 - var(--tw-space-y-reverse))) !important;
+      margin-bottom: calc(0.875rem * var(--tw-space-y-reverse)) !important;
+    }
+
+    .pb-app-content .space-y-4 > :not([hidden]) ~ :not([hidden]) {
+      --tw-space-y-reverse: 0;
+      margin-top: calc(0.75rem * calc(1 - var(--tw-space-y-reverse))) !important;
+      margin-bottom: calc(0.75rem * var(--tw-space-y-reverse)) !important;
+    }
+
+    .pb-app-content a,
+    .pb-app-content button,
+    .pb-app-content select,
+    .pb-app-content input[type='text'],
+    .pb-app-content input[type='search'],
+    .pb-app-content input[type='number'],
+    .pb-app-content input[type='tel'],
+    .pb-app-content input[type='date'],
+    .pb-app-content input[type='datetime-local'] {
+      min-height: 2.75rem;
+    }
+
+    .parkbuddy-sticky-cta {
+      bottom: calc(env(safe-area-inset-bottom) + 5.15rem) !important;
+      z-index: 46;
+      padding: 0 0.75rem !important;
+    }
+
+    .parkbuddy-sticky-cta__inner {
+      width: min(calc(100vw - 1.5rem), 40rem) !important;
+      min-height: 3.75rem !important;
+      gap: 0.5rem !important;
+      border-radius: 1.25rem !important;
+      padding: 0.5rem !important;
+    }
+
+    .parkbuddy-sticky-cta__inner > a,
+    .parkbuddy-sticky-cta__inner > button,
+    .parkbuddy-sticky-cta__inner > form > button {
+      min-height: 2.875rem !important;
+      border-radius: 0.95rem !important;
+      font-size: 0.875rem !important;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .pb-sticky-top {
+      position: static;
+    }
+  }
+}
+/* End ParkBuddy universal mobile Dense UX + sticky surfaces */
+
+body:has([data-parkbuddy-print-page='true']) .parkbuddy-sticky-cta {
+  display: none !important;
+}

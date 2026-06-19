@@ -2,9 +2,9 @@ import Link from 'next/link';
 
 export function TopBar({ title, description, action }: { title: string; description?: string; action?: { href: string; label: string } }) {
   return (
-    <header className="flex items-start justify-between gap-4">
+    <header className="pb-sticky-top flex items-start justify-between gap-4 rounded-[24px] border border-slate-200 bg-white/95 p-3 shadow-sm backdrop-blur md:rounded-none md:border-0 md:bg-transparent md:p-0 md:shadow-none md:backdrop-blur-0">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">{title}</h1>
+        <h1 className="text-xl font-extrabold tracking-tight text-slate-900 md:text-2xl">{title}</h1>
         {description ? <p className="mt-1 text-sm leading-6 text-slate-500">{description}</p> : null}
       </div>
       {action ? (
