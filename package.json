@@ -12,10 +12,11 @@
     "quality": "npm run verify",
     "security:smoke": "npm run security:scan",
     "security:scan": "node scripts/security-smoke-test.mjs && npm run security:rls",
-    "verify": "npm run security:scan && npm run lint && npm run typecheck",
+    "verify": "npm run security:scan && npm run architecture:scan && npm run lint && npm run typecheck",
     "audit:prod": "npm audit --omit=dev --audit-level=high",
     "test": "npm run verify",
-    "security:rls": "node scripts/rls-policy-audit.mjs"
+    "security:rls": "node scripts/rls-policy-audit.mjs",
+    "architecture:scan": "node scripts/architecture-boundary-audit.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",

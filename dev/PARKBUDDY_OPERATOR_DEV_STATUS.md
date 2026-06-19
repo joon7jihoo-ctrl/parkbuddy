@@ -152,3 +152,24 @@ supabase/PARKBUDDY_RLS_RPC_OPERATION_AUDIT.sql
 ```
 
 운영 DB에서 위 SQL을 실행해 핵심 테이블 RLS, 정책 목록, anon/public 쓰기 권한, SECURITY DEFINER RPC, RPC 실행 권한을 확인한다.
+
+## 2026-06-19 - App Router 아키텍처 경계 점검 도구
+
+- Server/Client Component 경계가 무너지지 않도록 `architecture:scan` 스크립트를 추가했다.
+- Client Component에서 서버 Supabase client, 서버 인증 모듈, `next/headers`, `next/cache`를 직접 import하면 실패하도록 했다.
+- `src/server/actions/*.ts`는 반드시 `'use server'`로 시작하는지 점검한다.
+- Server Action에서 브라우저 Supabase client를 사용하지 않는지도 확인한다.
+- `npm run verify` 흐름에 아키텍처 점검을 포함했다.
+
+### 추가 점검 명령
+
+```bash
+npm run architecture:scan
+npm run verify
+```
+
+### 관련 문서
+
+```text
+dev/PARKBUDDY_ARCHITECTURE_BOUNDARY_AUDIT.md
+```
