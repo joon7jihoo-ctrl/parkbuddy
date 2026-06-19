@@ -1,6 +1,7 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 import { TopBar } from '@/components/TopBar';
 import { EmptyState } from '@/components/EmptyState';
+import { CopyButton } from '@/components/copy-button';
 import { formatKoreanDateTime } from '@/lib/utils';
 import { requireCurrentMember } from '@/server/auth';
 import { createRoundFromEventAction } from '@/server/actions/event-rounds';
@@ -63,6 +64,40 @@ function getEventTypeBadge(eventType: string | null) {
   return { label: '정기 라운딩', className: 'bg-emerald-50 text-emerald-700 ring-emerald-100' };
 }
 
+
+function getPublicScheduleUrl(eventId: string) {
+  const configuredUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const vercelUrl = process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : null;
+  const baseUrl = configuredUrl ?? vercelUrl ?? 'https://parkbuddy-five.vercel.app';
+
+  return `${baseUrl.replace(/\/$/, '')}/schedule#event-${eventId}`;
+}
+
+function createKakaoAttendanceMessage({
+  title,
+  startsAt,
+  courseName,
+  url,
+}: {
+  title: string;
+  startsAt: string;
+  courseName: string | null;
+  url: string;
+}) {
+  return [
+    '[ParkBuddy \uB77C\uC6B4\uB529 \uACF5\uC9C0]',
+    '',
+    `\uC81C\uBAA9: ${title}`,
+    `\uC77C\uC790: ${formatKoreanDateTime(startsAt)}`,
+    `\uC7A5\uC18C: ${courseName?.trim() || '\uBBF8\uC815'}`,
+    '',
+    '\uCC38\uC11D \uC5EC\uBD80\uB97C \uC544\uB798 \uB9C1\uD06C\uC5D0\uC11C \uC120\uD0DD\uD574\uC8FC\uC138\uC694.',
+    '\uC120\uD0DD\uC9C0\uB294 \uCC38\uC11D / \uBD88\uCC38 \uB450 \uAC00\uC9C0\uC785\uB2C8\uB2E4.',
+    '',
+    '\uCC38\uC11D \uD655\uC778 \uB9C1\uD06C:',
+    url,
+  ].join('\n');
+}
 function getEventRoundErrorMessage(error?: string) {
   switch (error) {
     case 'auth_required':
@@ -274,9 +309,16 @@ export default async function SchedulePage({ searchParams }: SchedulePageProps) 
               const myStatus = normalizeVoteStatus(votes.find((vote) => vote.member_id === member.id)?.status ?? null);
               const typeBadge = getEventTypeBadge(event.event_type);
               const linkedRoundId = linkedRoundByEventId.get(event.id);
+              const attendanceUrl = getPublicScheduleUrl(event.id);
+              const kakaoAttendanceMessage = createKakaoAttendanceMessage({
+                title: event.title,
+                startsAt: event.starts_at,
+                courseName: event.course_name,
+                url: attendanceUrl,
+              });
 
               return (
-                <article key={event.id} className="rounded-[24px] border border-slate-200 bg-white p-3 shadow-sm md:p-4">
+                <article id={`event-${event.id}`} key={event.id} className="rounded-[24px] border border-slate-200 bg-white p-3 shadow-sm md:p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <h2 className="text-base font-extrabold leading-tight text-slate-950 md:text-lg">{event.title}</h2>
@@ -292,7 +334,22 @@ export default async function SchedulePage({ searchParams }: SchedulePageProps) 
                       <VoteTotalButton voters={allVoters} totalMembers={totalMembers} />
                     </div>
                   </div>
-
+                  {member.role === 'admin' ? (
+                    <div className="mt-3 grid gap-2 rounded-2xl border border-emerald-100 bg-emerald-50 p-2 sm:grid-cols-2">
+                      <CopyButton
+                        value={kakaoAttendanceMessage}
+                        label={"\uCE74\uCE74\uC624\uD1A1 \uACF5\uC9C0 \uBCF5\uC0AC"}
+                        copiedLabel={"\uACF5\uC9C0 \uBCF5\uC0AC\uB428"}
+                        className="flex min-h-11 items-center justify-center rounded-2xl bg-emerald-600 px-3 py-2 text-xs font-extrabold text-white shadow-sm transition active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-slate-300"
+                      />
+                      <CopyButton
+                        value={attendanceUrl}
+                        label={"\uCC38\uC11D \uB9C1\uD06C \uBCF5\uC0AC"}
+                        copiedLabel={"\uB9C1\uD06C \uBCF5\uC0AC\uB428"}
+                        className="flex min-h-11 items-center justify-center rounded-2xl bg-white px-3 py-2 text-xs font-extrabold text-emerald-700 shadow-sm ring-1 ring-emerald-100 transition active:scale-[0.99] disabled:cursor-not-allowed disabled:text-slate-400"
+                      />
+                    </div>
+                  ) : null}
                   <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-2">
                     <VoteButtons
                       eventId={event.id}
@@ -334,3 +391,6 @@ export default async function SchedulePage({ searchParams }: SchedulePageProps) 
     </main>
   );
 }
+
+
+
