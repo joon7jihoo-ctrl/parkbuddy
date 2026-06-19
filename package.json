@@ -11,10 +11,11 @@
     "typecheck": "tsc --noEmit",
     "quality": "npm run verify",
     "security:smoke": "npm run security:scan",
-    "security:scan": "node scripts/security-smoke-test.mjs",
+    "security:scan": "node scripts/security-smoke-test.mjs && npm run security:rls",
     "verify": "npm run security:scan && npm run lint && npm run typecheck",
     "audit:prod": "npm audit --omit=dev --audit-level=high",
-    "test": "npm run verify"
+    "test": "npm run verify",
+    "security:rls": "node scripts/rls-policy-audit.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",

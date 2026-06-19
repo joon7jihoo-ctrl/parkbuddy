@@ -130,3 +130,25 @@
 - 목록/조회 화면에는 `PageQuickActions`를 통해 화면별 빠른 실행 CTA를 제공한다.
 - 조 편성/운영자 스코어 입력처럼 이미 저장 CTA가 있는 화면은 빠른 실행 CTA를 숨겨 중복을 피한다.
 - 인쇄 화면에서는 하단 네비게이션과 sticky CTA가 모두 숨겨진다.
+
+## 2026-06-19 - RLS/RPC 운영 보안 점검 도구
+
+- 운영 전 Supabase RLS/RPC 점검을 반복할 수 있도록 읽기 전용 SQL 점검 파일을 추가했다.
+- 로컬 마이그레이션에 RLS 활성화와 정책 생성이 빠져 있는지 확인하는 `security:rls` 스크립트를 추가했다.
+- 기존 `security:scan`은 보안 스모크 테스트 후 RLS 마이그레이션 점검까지 함께 실행하도록 확장했다.
+- 이 단계는 앱 화면 코드를 변경하지 않고 운영 안정성 점검 기준을 강화하는 작업이다.
+
+### 추가 점검 명령
+
+```bash
+npm run security:scan
+npm run verify
+```
+
+### Supabase SQL Editor 점검 파일
+
+```text
+supabase/PARKBUDDY_RLS_RPC_OPERATION_AUDIT.sql
+```
+
+운영 DB에서 위 SQL을 실행해 핵심 테이블 RLS, 정책 목록, anon/public 쓰기 권한, SECURITY DEFINER RPC, RPC 실행 권한을 확인한다.
